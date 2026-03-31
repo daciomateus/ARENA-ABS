@@ -6,6 +6,8 @@ const adminWhatsappNumber = '5591993500177';
 
 const weekRangeEl = document.querySelector('#week-range');
 const scheduleGrid = document.querySelector('#schedule-grid');
+const mobileDayStrip = document.querySelector('#mobile-day-strip');
+const mobileSchedule = document.querySelector('#mobile-schedule');
 const selectedSlotTitle = document.querySelector('#selected-slot-title');
 const selectedSlotPrice = document.querySelector('#selected-slot-price');
 const slotDetails = document.querySelector('#slot-details');
@@ -26,6 +28,7 @@ const customerPhoneInput = document.querySelector('#customer-phone');
 const customerNotesInput = document.querySelector('#customer-notes');
 
 let currentStartDate = normalizeDate(new Date());
+let selectedMobileDate = normalizeDate(new Date());
 let selectedReservation = null;
 let selectedCourtFilter = 'all';
 let pendingSelections = [];
@@ -72,6 +75,10 @@ function formatDateLong(date) {
   return date.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
 }
 
+function formatDayShort(date) {
+  return date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+}
+
 function formatPrice(price) {
   return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -105,6 +112,12 @@ function getVisibleDays() {
   }
 
   return days;
+}
+
+function syncSelectedMobileDate(visibleDays) {
+  if (!visibleDays.some((day) => isSameDay(day, selectedMobileDate))) {
+    selectedMobileDate = new Date(visibleDays[0]);
+  }
 }
 
 function getVisibleCourts() {
@@ -188,6 +201,7 @@ function resetInteractionState(options = {}) {
 function renderHeaderInfo() {
   const visibleDays = getVisibleDays();
   const today = normalizeDate(new Date());
+  syncSelectedMobileDate(visibleDays);
   weekRangeEl.textContent = `${formatDate(visibleDays[0])} - ${formatDate(visibleDays[visibleDays.length - 1])}`;
   todayIndicator.textContent = `Comecando em: ${formatDateLong(visibleDays[0])}`;
   prevWeekButton.disabled = currentStartDate.getTime() <= today.getTime();
@@ -200,7 +214,6 @@ function renderAvailabilitySummary() {
   availabilitySummary.innerHTML = visibleCourts
     .map((court) => {
       const freeSlots = visibleDays.reduce((total, date) => {
-        if (!isBookableDay(date)) return total;
         const availableInDay = horarios.filter((hour) => !findBooking(date, hour, court) && !isPastSlot(date, hour)).length;
         return total + availableInDay;
       }, 0);
@@ -215,7 +228,25 @@ function renderAvailabilitySummary() {
     .join('');
 }
 
-function renderSchedule() {
+function getSlotVisualState({ booking, pending, pastSlot }) {
+  if (booking) return 'reserved';
+  if (pending) return 'pending';
+  if (pastSlot) return 'past';
+  return 'available';
+}
+
+function getSlotStatusMarkup(state) {
+  const labels = {
+    reserved: 'Reservado',
+    pending: 'Selecionado',
+    past: 'Encerrado',
+    available: 'Disponivel'
+  };
+
+  return `<span class="slot-status slot-status--${state}">${labels[state]}</span>`;
+}
+
+function renderDesktopSchedule() {
   const visibleDays = getVisibleDays();
   const visibleCourts = getVisibleCourts();
   const today = normalizeDate(new Date());
@@ -231,14 +262,6 @@ function renderSchedule() {
     scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell grid-cell--court">Quadra ${court}</div>`);
 
     visibleDays.forEach((date) => {
-      if (!isBookableDay(date)) {
-        scheduleGrid.insertAdjacentHTML(
-          'beforeend',
-          `<div class="grid-cell ${isSameDay(date, today) ? 'grid-cell--today-column' : ''}"><div class="closed-day-card">Fechado neste dia</div></div>`
-        );
-        return;
-      }
-
       const slotsMarkup = horarios
         .map((hour) => {
           const booking = findBooking(date, hour, court);
@@ -246,27 +269,14 @@ function renderSchedule() {
           const pending = isPendingSelection(id);
           const reservedSelected = selectedReservation?.id === id;
           const pastSlot = isPastSlot(date, hour);
-          const stateClass = booking
-            ? 'slot-card--reserved'
-            : pending
-              ? 'slot-card--pending'
-              : pastSlot
-                ? 'slot-card--past'
-                : 'slot-card--available';
+          const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'slot-card--selected' : '';
           const price = getSlotPrice(hour);
-          const statusLabel = booking
-            ? '<span class="slot-status slot-status--reserved">Reservado</span>'
-            : pending
-              ? '<span class="slot-status slot-status--pending">Selecionado</span>'
-              : pastSlot
-                ? '<span class="slot-status slot-status--past">Encerrado</span>'
-                : '<span class="slot-status slot-status--available">Disponivel</span>';
           const customerLine = booking ? booking.customerName : pending ? 'Pronto para confirmar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
 
           return `
-            <button class="slot-card ${stateClass} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${date.toISOString()}" data-hour="${hour}" data-court="${court}">
-              ${statusLabel}
+            <button class="slot-card slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${date.toISOString()}" data-hour="${hour}" data-court="${court}">
+              ${getSlotStatusMarkup(state)}
               <strong>${hour}h</strong>
               <span>${customerLine}</span>
               <small>${booking ? formatPrice(booking.price) : formatPrice(price)}</small>
@@ -278,8 +288,67 @@ function renderSchedule() {
       scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell grid-cell--slots ${isSameDay(date, today) ? 'grid-cell--today-column' : ''}">${slotsMarkup}</div>`);
     });
   });
+}
 
-  renderAvailabilitySummary();
+function renderMobileDayStrip() {
+  const visibleDays = getVisibleDays();
+  syncSelectedMobileDate(visibleDays);
+
+  mobileDayStrip.innerHTML = visibleDays
+    .map((date) => {
+      const activeClass = isSameDay(date, selectedMobileDate) ? 'mobile-day-chip--active' : '';
+      return `
+        <button class="mobile-day-chip ${activeClass}" type="button" data-mobile-day="${date.toISOString()}">
+          <strong>${formatDayShort(date)}</strong>
+          <span>${formatDate(date)}</span>
+        </button>
+      `;
+    })
+    .join('');
+}
+
+function renderMobileSchedule() {
+  const visibleCourts = getVisibleCourts();
+  const activeDate = new Date(selectedMobileDate);
+
+  mobileSchedule.innerHTML = visibleCourts
+    .map((court) => {
+      const freeSlots = horarios.filter((hour) => !findBooking(activeDate, hour, court) && !isPastSlot(activeDate, hour)).length;
+      const slots = horarios
+        .map((hour) => {
+          const booking = findBooking(activeDate, hour, court);
+          const id = getBookingId(activeDate, hour, court);
+          const pending = isPendingSelection(id);
+          const reservedSelected = selectedReservation?.id === id;
+          const pastSlot = isPastSlot(activeDate, hour);
+          const state = getSlotVisualState({ booking, pending, pastSlot });
+          const selectedClass = reservedSelected || pending ? 'mobile-slot-card--selected' : '';
+          const supportText = booking ? booking.customerName : pending ? 'Pronto para confirmar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
+
+          return `
+            <button class="mobile-slot-card mobile-slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${activeDate.toISOString()}" data-hour="${hour}" data-court="${court}">
+              <div class="mobile-slot-card__row">
+                <strong>${hour}h as ${hour + 1}h</strong>
+                ${getSlotStatusMarkup(state)}
+              </div>
+              <span>${supportText}</span>
+              <small>${booking ? formatPrice(booking.price) : formatPrice(getSlotPrice(hour))}</small>
+            </button>
+          `;
+        })
+        .join('');
+
+      return `
+        <section class="mobile-group">
+          <div class="mobile-group__header">
+            <h3>Quadra ${court}</h3>
+            <span>${freeSlots} horarios livres</span>
+          </div>
+          <div class="mobile-slots">${slots}</div>
+        </section>
+      `;
+    })
+    .join('');
 }
 
 function renderSelectionList() {
@@ -387,6 +456,15 @@ function renderSelectedState() {
   renderEmptyState();
 }
 
+function renderAll() {
+  renderHeaderInfo();
+  renderAvailabilitySummary();
+  renderDesktopSchedule();
+  renderMobileDayStrip();
+  renderMobileSchedule();
+  renderSelectedState();
+}
+
 function togglePendingSelection(button) {
   const date = new Date(button.dataset.date);
   const hour = Number(button.dataset.hour);
@@ -408,8 +486,7 @@ function togglePendingSelection(button) {
       price: currentBooking.price
     };
     clearPendingSelections();
-    renderSchedule();
-    renderSelectedState();
+    renderAll();
     return;
   }
 
@@ -428,8 +505,7 @@ function togglePendingSelection(button) {
     });
   }
 
-  renderSchedule();
-  renderSelectedState();
+  renderAll();
 }
 
 function buildAdminWhatsappMessage(bookings, customerName, phone, notes) {
@@ -475,10 +551,21 @@ function openWhatsappConfirmation(bookings, customerName, phone, notes) {
   }
 }
 
-scheduleGrid.addEventListener('click', (event) => {
+function handleSlotClick(event) {
   const button = event.target.closest('[data-slot-id]');
   if (!button) return;
   togglePendingSelection(button);
+}
+
+scheduleGrid.addEventListener('click', handleSlotClick);
+mobileSchedule.addEventListener('click', handleSlotClick);
+
+mobileDayStrip.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-mobile-day]');
+  if (!button) return;
+  selectedMobileDate = normalizeDate(new Date(button.dataset.mobileDay));
+  renderMobileDayStrip();
+  renderMobileSchedule();
 });
 
 bookingForm.addEventListener('submit', (event) => {
@@ -506,8 +593,7 @@ bookingForm.addEventListener('submit', (event) => {
     const alreadyBooked = bookings.find((booking) => booking.id === selection.id);
     if (alreadyBooked || isPastSlot(selection.date, selection.hour)) {
       formMessage.textContent = 'Um dos horarios selecionados ja nao esta mais disponivel. Atualize a selecao.';
-      renderSchedule();
-      renderSelectedState();
+      renderAll();
       return;
     }
 
@@ -526,8 +612,7 @@ bookingForm.addEventListener('submit', (event) => {
   saveBookings([...bookings, ...newBookings]);
   openWhatsappConfirmation(newBookings, customerName, phone, notes);
   resetInteractionState();
-  renderHeaderInfo();
-  renderSchedule();
+  renderAll();
 });
 
 cancelBookingButton.addEventListener('click', () => {
@@ -542,14 +627,12 @@ cancelBookingButton.addEventListener('click', () => {
   const bookings = loadBookings().filter((booking) => booking.id !== selectedReservation.booking.id);
   saveBookings(bookings);
   selectedReservation = null;
-  renderHeaderInfo();
-  renderSchedule();
-  renderSelectedState();
+  renderAll();
 });
 
 closeDrawerButton.addEventListener('click', () => {
   resetInteractionState();
-  renderSchedule();
+  renderAll();
 });
 
 prevWeekButton.addEventListener('click', () => {
@@ -560,26 +643,22 @@ prevWeekButton.addEventListener('click', () => {
     currentStartDate = today;
   }
 
+  selectedMobileDate = new Date(currentStartDate);
   resetInteractionState();
-  renderHeaderInfo();
-  renderSchedule();
+  renderAll();
 });
 
 nextWeekButton.addEventListener('click', () => {
   currentStartDate = addDays(currentStartDate, 7);
+  selectedMobileDate = new Date(currentStartDate);
   resetInteractionState();
-  renderHeaderInfo();
-  renderSchedule();
+  renderAll();
 });
 
 courtFilter.addEventListener('change', () => {
   selectedCourtFilter = courtFilter.value;
   resetInteractionState();
-  renderSchedule();
+  renderAll();
 });
 
-renderHeaderInfo();
-renderSchedule();
-renderSelectedState();
-
-
+renderAll();
