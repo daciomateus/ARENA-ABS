@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reserva de Quadras</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero__copy">
+        <span class="eyebrow">ARENA ABS</span>
+        <h1>Agenda de Quadras</h1>
+        <p>Gerencie reservas de segunda a sabado, visualize horarios disponiveis das 17h as 22h e permita cancelamento ate 1 hora antes da partida.</p>
+        <div class="hero__stats">
+          <div>
+            <strong>4 quadras</strong>
+            <span>A, B, S e E</span>
+          </div>
+          <div>
+            <strong>Valores</strong>
+            <span>R$ 60 as 17h, R$ 70 a partir das 18h</span>
+          </div>
+          <div>
+            <strong>Cancelamento</strong>
+            <span>Ate 1 hora antes do horario marcado</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero__card">
+        <p class="hero__label">Regras da agenda</p>
+        <ul>
+          <li>Funcionamento de segunda a sabado</li>
+          <li>Horarios: 17h, 18h, 19h, 20h, 21h e 22h</li>
+          <li>Cancelamento bloqueado com menos de 1 hora</li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="schedule-panel">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">Agenda</span>
+            <h2>Horarios disponiveis</h2>
+          </div>
+          <div class="week-nav">
+            <button class="ghost-button" id="prev-week" type="button">Semana anterior</button>
+            <span id="week-range"></span>
+            <button class="ghost-button" id="next-week" type="button">Proxima semana</button>
+          </div>
+        </div>
+        <div class="schedule-toolbar">
+          <label class="filter-field">
+            <span>Filtrar quadra</span>
+            <select id="court-filter">
+              <option value="all">Geral</option>
+              <option value="A">Quadra A</option>
+              <option value="B">Quadra B</option>
+              <option value="S">Quadra S</option>
+              <option value="E">Quadra E</option>
+            </select>
+          </label>
+          <div class="today-indicator" id="today-indicator"></div>
+        </div>
+        <div class="availability-summary" id="availability-summary"></div>
+        <div id="schedule-grid" class="schedule-grid"></div>
+      </section>
+
+      <aside class="booking-panel">
+        <div class="booking-panel__header">
+          <div>
+            <span class="eyebrow">Reserva</span>
+            <h2 id="selected-slot-title">Selecione um horario</h2>
+          </div>
+          <span class="booking-price" id="selected-slot-price">R$ 0,00</span>
+        </div>
+
+        <div id="slot-details" class="slot-details empty-state">
+          Clique em um horario disponivel para reservar ou em uma reserva existente para ver os dados e cancelar.
+        </div>
+
+        <form id="booking-form" class="booking-form hidden">
+          <label class="form-field">
+            <span>Nome do cliente</span>
+            <input type="text" id="customer-name" required />
+          </label>
+          <label class="form-field">
+            <span>Telefone</span>
+            <input type="tel" id="customer-phone" required />
+          </label>
+          <label class="form-field">
+            <span>Observacoes</span>
+            <input type="text" id="customer-notes" placeholder="Opcional" />
+          </label>
+          <button class="primary-button" type="submit">Confirmar reserva</button>
+        </form>
+
+        <div id="booking-summary" class="booking-summary hidden"></div>
+
+        <div class="action-group">
+          <button class="danger-button hidden" id="cancel-booking" type="button">Cancelar horario</button>
+        </div>
+
+        <p class="form-message" id="form-message"></p>
+      </aside>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
