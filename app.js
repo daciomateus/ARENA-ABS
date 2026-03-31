@@ -93,7 +93,18 @@ function getBookingId(date, hour, court) {
 }
 
 function getVisibleDays() {
-  return Array.from({ length: 7 }, (_, index) => addDays(currentStartDate, index));
+  const days = [];
+  let cursor = new Date(currentStartDate);
+
+  while (days.length < 7) {
+    if (isBookableDay(cursor)) {
+      days.push(new Date(cursor));
+    }
+
+    cursor = addDays(cursor, 1);
+  }
+
+  return days;
 }
 
 function getVisibleCourts() {
