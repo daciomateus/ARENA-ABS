@@ -1,6 +1,6 @@
 const quadras = ['A', 'B', 'S', 'E'];
 const horarios = [17, 18, 19, 20, 21, 22];
-const diasPermitidos = [1, 2, 3, 4, 5, 6];
+const diasReservaPermitidos = [1, 2, 3, 4, 5, 6];
 const storageKey = 'agenda-quadras-bookings';
 const adminWhatsappNumber = '5591993500177';
 
@@ -9,6 +9,7 @@ const scheduleGrid = document.querySelector('#schedule-grid');
 const selectedSlotTitle = document.querySelector('#selected-slot-title');
 const selectedSlotPrice = document.querySelector('#selected-slot-price');
 const slotDetails = document.querySelector('#slot-details');
+const selectionList = document.querySelector('#selection-list');
 const bookingForm = document.querySelector('#booking-form');
 const bookingSummary = document.querySelector('#booking-summary');
 const cancelBookingButton = document.querySelector('#cancel-booking');
@@ -18,10 +19,16 @@ const nextWeekButton = document.querySelector('#next-week');
 const courtFilter = document.querySelector('#court-filter');
 const todayIndicator = document.querySelector('#today-indicator');
 const availabilitySummary = document.querySelector('#availability-summary');
+const bookingDrawer = document.querySelector('#booking-drawer');
+const closeDrawerButton = document.querySelector('#close-drawer');
+const customerNameInput = document.querySelector('#customer-name');
+const customerPhoneInput = document.querySelector('#customer-phone');
+const customerNotesInput = document.querySelector('#customer-notes');
 
-let currentWeekStart = getStartOfWeek(new Date());
-let selectedSlot = null;
+let currentStartDate = normalizeDate(new Date());
+let selectedReservation = null;
 let selectedCourtFilter = 'all';
+let pendingSelections = [];
 
 function loadBookings() {
   try {
@@ -35,12 +42,9 @@ function saveBookings(bookings) {
   localStorage.setItem(storageKey, JSON.stringify(bookings));
 }
 
-function getStartOfWeek(date) {
+function normalizeDate(date) {
   const normalized = new Date(date);
   normalized.setHours(0, 0, 0, 0);
-  const day = normalized.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  normalized.setDate(normalized.getDate() + diff);
   return normalized;
 }
 
@@ -54,6 +58,10 @@ function isSameDay(first, second) {
   return first.getFullYear() === second.getFullYear()
     && first.getMonth() === second.getMonth()
     && first.getDate() === second.getDate();
+}
+
+function isBookableDay(date) {
+  return diasReservaPermitidos.includes(date.getDay());
 }
 
 function formatDate(date) {
@@ -84,8 +92,8 @@ function getBookingId(date, hour, court) {
   return `${isoDate.toISOString().slice(0, 10)}-${hour}-${court}`;
 }
 
-function getWeekDays() {
-  return diasPermitidos.map((_, index) => addDays(currentWeekStart, index));
+function getVisibleDays() {
+  return Array.from({ length: 7 }, (_, index) => addDays(currentStartDate, index));
 }
 
 function getVisibleCourts() {
@@ -99,8 +107,7 @@ function canCancelBooking(booking) {
 }
 
 function isPastSlot(date, hour) {
-  const slotDate = buildSlotDate(date, hour);
-  return slotDate.getTime() < new Date().getTime();
+  return buildSlotDate(date, hour).getTime() < new Date().getTime();
 }
 
 function findBooking(date, hour, court) {
@@ -115,24 +122,74 @@ function normalizeWhatsappNumber(phone) {
   return `55${digits}`;
 }
 
-function renderWeekHeader() {
-  const weekDays = getWeekDays();
-  weekRangeEl.textContent = `${formatDate(weekDays[0])} - ${formatDate(weekDays[weekDays.length - 1])}`;
+function getPendingSelectionIndex(slotId) {
+  return pendingSelections.findIndex((selection) => selection.id === slotId);
+}
 
-  const today = new Date();
-  const isCurrentWeek = weekDays.some((date) => isSameDay(date, today));
-  todayIndicator.textContent = isCurrentWeek
-    ? `Hoje: ${formatDateLong(today)}`
-    : 'Visualizando outra semana';
+function isPendingSelection(slotId) {
+  return getPendingSelectionIndex(slotId) >= 0;
+}
+
+function getPendingTotal() {
+  return pendingSelections.reduce((total, selection) => total + selection.price, 0);
+}
+
+function openDrawer() {
+  bookingDrawer.classList.add('booking-drawer--open');
+}
+
+function closeDrawer() {
+  bookingDrawer.classList.remove('booking-drawer--open');
+}
+
+function clearPendingSelections() {
+  pendingSelections = [];
+}
+
+function resetFormFields() {
+  bookingForm.reset();
+}
+
+function resetInteractionState(options = {}) {
+  const { keepFilter = true } = options;
+  selectedReservation = null;
+  clearPendingSelections();
+  selectedSlotTitle.textContent = 'Selecione um ou mais horarios';
+  selectedSlotPrice.textContent = 'R$ 0,00';
+  slotDetails.textContent = 'Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.';
+  slotDetails.className = 'slot-details empty-state';
+  selectionList.innerHTML = '';
+  selectionList.classList.add('hidden');
+  bookingForm.classList.add('hidden');
+  bookingSummary.classList.add('hidden');
+  bookingSummary.innerHTML = '';
+  cancelBookingButton.classList.add('hidden');
+  formMessage.textContent = '';
+  resetFormFields();
+  closeDrawer();
+
+  if (!keepFilter) {
+    selectedCourtFilter = 'all';
+    courtFilter.value = 'all';
+  }
+}
+
+function renderHeaderInfo() {
+  const visibleDays = getVisibleDays();
+  const today = normalizeDate(new Date());
+  weekRangeEl.textContent = `${formatDate(visibleDays[0])} - ${formatDate(visibleDays[visibleDays.length - 1])}`;
+  todayIndicator.textContent = `Comecando em: ${formatDateLong(visibleDays[0])}`;
+  prevWeekButton.disabled = currentStartDate.getTime() <= today.getTime();
 }
 
 function renderAvailabilitySummary() {
-  const weekDays = getWeekDays();
+  const visibleDays = getVisibleDays();
   const visibleCourts = getVisibleCourts();
 
   availabilitySummary.innerHTML = visibleCourts
     .map((court) => {
-      const freeSlots = weekDays.reduce((total, date) => {
+      const freeSlots = visibleDays.reduce((total, date) => {
+        if (!isBookableDay(date)) return total;
         const availableInDay = horarios.filter((hour) => !findBooking(date, hour, court) && !isPastSlot(date, hour)).length;
         return total + availableInDay;
       }, 0);
@@ -148,40 +205,53 @@ function renderAvailabilitySummary() {
 }
 
 function renderSchedule() {
-  const weekDays = getWeekDays();
+  const visibleDays = getVisibleDays();
   const visibleCourts = getVisibleCourts();
-  const today = new Date();
+  const today = normalizeDate(new Date());
   scheduleGrid.innerHTML = '';
 
-  scheduleGrid.insertAdjacentHTML('beforeend', '<div class="grid-cell grid-cell--header">Quadra / Horario</div>');
-  weekDays.forEach((date) => {
+  scheduleGrid.insertAdjacentHTML('beforeend', '<div class="grid-cell grid-cell--header">Quadra / Dia</div>');
+  visibleDays.forEach((date) => {
     const todayClass = isSameDay(date, today) ? 'grid-cell--today' : '';
     scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell grid-cell--header ${todayClass}">${formatDateLong(date)}</div>`);
   });
 
   visibleCourts.forEach((court) => {
-    scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell">Quadra ${court}</div>`);
+    scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell grid-cell--court">Quadra ${court}</div>`);
 
-    weekDays.forEach((date) => {
+    visibleDays.forEach((date) => {
+      if (!isBookableDay(date)) {
+        scheduleGrid.insertAdjacentHTML(
+          'beforeend',
+          `<div class="grid-cell ${isSameDay(date, today) ? 'grid-cell--today-column' : ''}"><div class="closed-day-card">Fechado neste dia</div></div>`
+        );
+        return;
+      }
+
       const slotsMarkup = horarios
         .map((hour) => {
           const booking = findBooking(date, hour, court);
           const id = getBookingId(date, hour, court);
-          const isSelected = selectedSlot?.id === id;
+          const pending = isPendingSelection(id);
+          const reservedSelected = selectedReservation?.id === id;
           const pastSlot = isPastSlot(date, hour);
           const stateClass = booking
             ? 'slot-card--reserved'
-            : pastSlot
-              ? 'slot-card--past'
-              : 'slot-card--available';
-          const selectedClass = isSelected ? 'slot-card--selected' : '';
+            : pending
+              ? 'slot-card--pending'
+              : pastSlot
+                ? 'slot-card--past'
+                : 'slot-card--available';
+          const selectedClass = reservedSelected || pending ? 'slot-card--selected' : '';
           const price = getSlotPrice(hour);
           const statusLabel = booking
             ? '<span class="slot-status slot-status--reserved">Reservado</span>'
-            : pastSlot
-              ? '<span class="slot-status slot-status--past">Encerrado</span>'
-              : '<span class="slot-status slot-status--available">Disponivel</span>';
-          const customerLine = booking ? booking.customerName : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
+            : pending
+              ? '<span class="slot-status slot-status--pending">Selecionado</span>'
+              : pastSlot
+                ? '<span class="slot-status slot-status--past">Encerrado</span>'
+                : '<span class="slot-status slot-status--available">Disponivel</span>';
+          const customerLine = booking ? booking.customerName : pending ? 'Pronto para confirmar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
 
           return `
             <button class="slot-card ${stateClass} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${date.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -194,127 +264,202 @@ function renderSchedule() {
         })
         .join('');
 
-      scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell ${isSameDay(date, today) ? 'grid-cell--today-column' : ''}">${slotsMarkup}</div>`);
+      scheduleGrid.insertAdjacentHTML('beforeend', `<div class="grid-cell grid-cell--slots ${isSameDay(date, today) ? 'grid-cell--today-column' : ''}">${slotsMarkup}</div>`);
     });
   });
 
   renderAvailabilitySummary();
 }
 
-function resetPanel(message) {
-  selectedSlot = null;
-  selectedSlotTitle.textContent = 'Selecione um horario';
+function renderSelectionList() {
+  if (!pendingSelections.length) {
+    selectionList.innerHTML = '';
+    selectionList.classList.add('hidden');
+    return;
+  }
+
+  const orderedSelections = [...pendingSelections].sort((first, second) => {
+    const firstTime = buildSlotDate(first.date, first.hour).getTime();
+    const secondTime = buildSlotDate(second.date, second.hour).getTime();
+    return firstTime - secondTime;
+  });
+
+  selectionList.innerHTML = orderedSelections
+    .map((selection) => `
+      <article class="selection-item">
+        <div>
+          <strong>Quadra ${selection.court} - ${selection.hour}h</strong>
+          <span>${formatDateLong(selection.date)}</span>
+        </div>
+        <div class="selection-item__meta">
+          <strong>${formatPrice(selection.price)}</strong>
+          <small>Toque no horario novamente para remover</small>
+        </div>
+      </article>
+    `)
+    .join('');
+
+  selectionList.classList.remove('hidden');
+}
+
+function renderReservedState() {
+  const booking = selectedReservation.booking;
+  const canCancel = canCancelBooking(booking);
+
+  selectedSlotTitle.textContent = `Quadra ${selectedReservation.court} - ${selectedReservation.hour}h`;
+  selectedSlotPrice.textContent = formatPrice(booking.price);
+  slotDetails.className = 'slot-details';
+  slotDetails.innerHTML = `
+    <strong>Horario reservado</strong><br>
+    Cliente: ${booking.customerName}<br>
+    Telefone: ${booking.phone}<br>
+    Data: ${formatDateLong(new Date(booking.datetime))}<br>
+    Observacoes: ${booking.notes || 'Nenhuma'}
+  `;
+
+  selectionList.classList.add('hidden');
+  selectionList.innerHTML = '';
+  bookingForm.classList.add('hidden');
+  bookingSummary.classList.remove('hidden');
+  bookingSummary.innerHTML = `
+    <strong>Status</strong>
+    <span>Reserva confirmada para ${selectedReservation.hour}h na Quadra ${selectedReservation.court}.</span>
+    <span>${canCancel ? 'Cancelamento liberado ate 1 hora antes.' : 'Cancelamento bloqueado: falta menos de 1 hora.'}</span>
+  `;
+  cancelBookingButton.classList.toggle('hidden', !canCancel);
+  formMessage.textContent = canCancel ? '' : 'Nao e mais possivel cancelar este horario.';
+  openDrawer();
+}
+
+function renderPendingState() {
+  selectedSlotTitle.textContent = pendingSelections.length === 1
+    ? '1 horario selecionado'
+    : `${pendingSelections.length} horarios selecionados`;
+  selectedSlotPrice.textContent = formatPrice(getPendingTotal());
+  slotDetails.className = 'slot-details';
+  slotDetails.textContent = 'Confira os horarios abaixo, preencha seus dados uma vez e confirme todas as reservas juntas.';
+  renderSelectionList();
+  bookingSummary.classList.add('hidden');
+  bookingSummary.innerHTML = '';
+  cancelBookingButton.classList.add('hidden');
+  bookingForm.classList.remove('hidden');
+  formMessage.textContent = '';
+  openDrawer();
+}
+
+function renderEmptyState() {
+  selectedSlotTitle.textContent = 'Selecione um ou mais horarios';
   selectedSlotPrice.textContent = 'R$ 0,00';
-  slotDetails.textContent = message || 'Clique em um horario disponivel para reservar ou em uma reserva existente para ver os dados e cancelar.';
   slotDetails.className = 'slot-details empty-state';
+  slotDetails.textContent = 'Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.';
+  selectionList.classList.add('hidden');
+  selectionList.innerHTML = '';
   bookingForm.classList.add('hidden');
   bookingSummary.classList.add('hidden');
+  bookingSummary.innerHTML = '';
   cancelBookingButton.classList.add('hidden');
   formMessage.textContent = '';
-  bookingForm.reset();
+  closeDrawer();
 }
 
-function renderSelectedSlot() {
-  if (!selectedSlot) {
-    resetPanel();
+function renderSelectedState() {
+  if (selectedReservation?.booking) {
+    renderReservedState();
     return;
   }
 
-  selectedSlotTitle.textContent = `${selectedSlot.court} • ${formatDateLong(selectedSlot.date)} • ${selectedSlot.hour}h`;
-  selectedSlotPrice.textContent = formatPrice(selectedSlot.price);
-
-  if (selectedSlot.isPast && !selectedSlot.booking) {
-    slotDetails.className = 'slot-details';
-    slotDetails.textContent = 'Este horario ja passou e nao pode mais ser reservado.';
-    bookingForm.classList.add('hidden');
-    bookingSummary.classList.add('hidden');
-    cancelBookingButton.classList.add('hidden');
-    formMessage.textContent = '';
+  if (pendingSelections.length) {
+    renderPendingState();
     return;
   }
 
-  if (selectedSlot.booking) {
-    const canCancel = canCancelBooking(selectedSlot.booking);
-    slotDetails.className = 'slot-details';
-    slotDetails.innerHTML = `
-      <strong>Horario reservado</strong><br>
-      Cliente: ${selectedSlot.booking.customerName}<br>
-      Telefone: ${selectedSlot.booking.phone}<br>
-      Observacoes: ${selectedSlot.booking.notes || 'Nenhuma'}
-    `;
-
-    bookingSummary.classList.remove('hidden');
-    bookingSummary.innerHTML = `
-      <strong>Status</strong>
-      <span>Reserva confirmada para ${selectedSlot.hour}h.</span>
-      <span>${canCancel ? 'Cancelamento liberado.' : 'Cancelamento bloqueado: falta menos de 1 hora.'}</span>
-    `;
-    bookingForm.classList.add('hidden');
-    cancelBookingButton.classList.toggle('hidden', !canCancel);
-    formMessage.textContent = canCancel ? '' : 'Nao e mais possivel cancelar este horario.';
-    return;
-  }
-
-  slotDetails.className = 'slot-details';
-  slotDetails.textContent = 'Horario disponivel. Preencha os dados para confirmar a reserva.';
-  bookingSummary.classList.add('hidden');
-  bookingForm.classList.remove('hidden');
-  cancelBookingButton.classList.add('hidden');
-  formMessage.textContent = '';
+  renderEmptyState();
 }
 
-function selectSlot(button) {
+function togglePendingSelection(button) {
   const date = new Date(button.dataset.date);
   const hour = Number(button.dataset.hour);
   const court = button.dataset.court;
-  const booking = findBooking(date, hour, court);
+  const id = button.dataset.slotId;
 
-  selectedSlot = {
-    id: button.dataset.slotId,
-    date,
-    hour,
-    court,
-    price: getSlotPrice(hour),
-    booking,
-    isPast: isPastSlot(date, hour)
-  };
+  if (isPastSlot(date, hour)) {
+    return;
+  }
+
+  const currentBooking = findBooking(date, hour, court);
+  if (currentBooking) {
+    selectedReservation = {
+      id,
+      date,
+      hour,
+      court,
+      booking: currentBooking,
+      price: currentBooking.price
+    };
+    clearPendingSelections();
+    renderSchedule();
+    renderSelectedState();
+    return;
+  }
+
+  selectedReservation = null;
+  const selectionIndex = getPendingSelectionIndex(id);
+
+  if (selectionIndex >= 0) {
+    pendingSelections.splice(selectionIndex, 1);
+  } else {
+    pendingSelections.push({
+      id,
+      date,
+      hour,
+      court,
+      price: getSlotPrice(hour)
+    });
+  }
 
   renderSchedule();
-  renderSelectedSlot();
+  renderSelectedState();
 }
 
-function buildAdminWhatsappMessage(booking) {
+function buildAdminWhatsappMessage(bookings, customerName, phone, notes) {
+  const lines = bookings
+    .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
+    .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
+    .join('\n');
+
   return encodeURIComponent(
-    `Nova reserva de quadra\n\n` +
-    `Cliente: ${booking.customerName}\n` +
-    `Telefone: ${booking.phone}\n` +
-    `Quadra: ${booking.court}\n` +
-    `Data: ${formatDateLong(new Date(booking.datetime))}\n` +
-    `Horario: ${booking.hour}h\n` +
-    `Valor: ${formatPrice(booking.price)}\n` +
-    `Observacoes: ${booking.notes || 'Nenhuma'}`
+    `Nova reserva - Arena ABS\n\n` +
+    `Cliente: ${customerName}\n` +
+    `Telefone: ${phone}\n\n` +
+    `Horarios reservados:\n${lines}\n\n` +
+    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n` +
+    `Observacoes: ${notes || 'Nenhuma'}`
   );
 }
 
-function buildCustomerWhatsappMessage(booking) {
+function buildCustomerWhatsappMessage(bookings, customerName, notes) {
+  const lines = bookings
+    .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
+    .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
+    .join('\n');
+
   return encodeURIComponent(
-    `Sua reserva foi confirmada\n\n` +
-    `Quadra: ${booking.court}\n` +
-    `Data: ${formatDateLong(new Date(booking.datetime))}\n` +
-    `Horario: ${booking.hour}h\n` +
-    `Valor: ${formatPrice(booking.price)}\n` +
-    `Observacoes: ${booking.notes || 'Nenhuma'}\n\n` +
-    `Aguardamos voce.`
+    `Reserva confirmada - Arena ABS\n\n` +
+    `Cliente: ${customerName}\n\n` +
+    `Horarios:\n${lines}\n\n` +
+    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n` +
+    `Observacoes: ${notes || 'Nenhuma'}\n\n` +
+    `Aguardamos voce na Arena ABS.`
   );
 }
 
-function openWhatsappConfirmation(booking) {
-  const customerWhatsappNumber = normalizeWhatsappNumber(booking.phone);
-  const adminUrl = `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(booking)}`;
+function openWhatsappConfirmation(bookings, customerName, phone, notes) {
+  const customerWhatsappNumber = normalizeWhatsappNumber(phone);
+  const adminUrl = `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone, notes)}`;
   window.open(adminUrl, '_blank');
 
   if (customerWhatsappNumber) {
-    const customerUrl = `https://wa.me/${customerWhatsappNumber}?text=${buildCustomerWhatsappMessage(booking)}`;
+    const customerUrl = `https://wa.me/${customerWhatsappNumber}?text=${buildCustomerWhatsappMessage(bookings, customerName, notes)}`;
     setTimeout(() => window.open(customerUrl, '_blank'), 250);
   }
 }
@@ -322,85 +467,108 @@ function openWhatsappConfirmation(booking) {
 scheduleGrid.addEventListener('click', (event) => {
   const button = event.target.closest('[data-slot-id]');
   if (!button) return;
-  selectSlot(button);
+  togglePendingSelection(button);
 });
 
 bookingForm.addEventListener('submit', (event) => {
   event.preventDefault();
   formMessage.textContent = '';
 
-  if (!selectedSlot || selectedSlot.booking || selectedSlot.isPast) {
-    formMessage.textContent = 'Selecione um horario disponivel.';
+  if (!pendingSelections.length) {
+    formMessage.textContent = 'Selecione pelo menos um horario disponivel.';
     return;
   }
 
-  const bookings = loadBookings();
-  const customerName = document.querySelector('#customer-name').value.trim();
-  const phone = document.querySelector('#customer-phone').value.trim();
-  const notes = document.querySelector('#customer-notes').value.trim();
+  const customerName = customerNameInput.value.trim();
+  const phone = customerPhoneInput.value.trim();
+  const notes = customerNotesInput.value.trim();
 
   if (!customerName || !phone) {
     formMessage.textContent = 'Preencha nome e telefone.';
     return;
   }
 
-  const booking = {
-    id: selectedSlot.id,
-    customerName,
-    phone,
-    notes,
-    court: selectedSlot.court,
-    hour: selectedSlot.hour,
-    price: selectedSlot.price,
-    datetime: buildSlotDate(selectedSlot.date, selectedSlot.hour).toISOString()
-  };
+  const bookings = loadBookings();
+  const newBookings = [];
 
-  bookings.push(booking);
-  saveBookings(bookings);
-  selectedSlot.booking = booking;
+  for (const selection of pendingSelections) {
+    const alreadyBooked = bookings.find((booking) => booking.id === selection.id);
+    if (alreadyBooked || isPastSlot(selection.date, selection.hour)) {
+      formMessage.textContent = 'Um dos horarios selecionados ja nao esta mais disponivel. Atualize a selecao.';
+      renderSchedule();
+      renderSelectedState();
+      return;
+    }
+
+    newBookings.push({
+      id: selection.id,
+      customerName,
+      phone,
+      notes,
+      court: selection.court,
+      hour: selection.hour,
+      price: selection.price,
+      datetime: buildSlotDate(selection.date, selection.hour).toISOString()
+    });
+  }
+
+  saveBookings([...bookings, ...newBookings]);
+  openWhatsappConfirmation(newBookings, customerName, phone, notes);
+  resetInteractionState();
+  renderHeaderInfo();
   renderSchedule();
-  renderSelectedSlot();
-  formMessage.textContent = 'Reserva confirmada com sucesso.';
-  openWhatsappConfirmation(booking);
 });
 
 cancelBookingButton.addEventListener('click', () => {
-  if (!selectedSlot?.booking) return;
+  if (!selectedReservation?.booking) return;
 
-  if (!canCancelBooking(selectedSlot.booking)) {
+  if (!canCancelBooking(selectedReservation.booking)) {
     formMessage.textContent = 'Nao e mais possivel cancelar este horario.';
-    renderSelectedSlot();
+    renderSelectedState();
     return;
   }
 
-  const bookings = loadBookings().filter((booking) => booking.id !== selectedSlot.booking.id);
+  const bookings = loadBookings().filter((booking) => booking.id !== selectedReservation.booking.id);
   saveBookings(bookings);
-  selectedSlot.booking = null;
+  selectedReservation = null;
+  renderHeaderInfo();
   renderSchedule();
-  renderSelectedSlot();
-  formMessage.textContent = 'Reserva cancelada com sucesso.';
+  renderSelectedState();
+});
+
+closeDrawerButton.addEventListener('click', () => {
+  resetInteractionState();
+  renderSchedule();
 });
 
 prevWeekButton.addEventListener('click', () => {
-  currentWeekStart = addDays(currentWeekStart, -7);
-  resetPanel();
-  renderWeekHeader();
+  const today = normalizeDate(new Date());
+  currentStartDate = addDays(currentStartDate, -7);
+
+  if (currentStartDate.getTime() < today.getTime()) {
+    currentStartDate = today;
+  }
+
+  resetInteractionState();
+  renderHeaderInfo();
   renderSchedule();
 });
 
 nextWeekButton.addEventListener('click', () => {
-  currentWeekStart = addDays(currentWeekStart, 7);
-  resetPanel();
-  renderWeekHeader();
+  currentStartDate = addDays(currentStartDate, 7);
+  resetInteractionState();
+  renderHeaderInfo();
   renderSchedule();
 });
 
 courtFilter.addEventListener('change', () => {
   selectedCourtFilter = courtFilter.value;
-  resetPanel();
+  resetInteractionState();
   renderSchedule();
 });
 
-renderWeekHeader();
+renderHeaderInfo();
 renderSchedule();
-resetPanel();
+renderSelectedState();
+
+
