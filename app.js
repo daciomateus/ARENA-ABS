@@ -2,7 +2,7 @@ const quadras = ['A', 'B', 'S', 'E'];
 const horarios = [17, 18, 19, 20, 21, 22];
 const diasReservaPermitidos = [1, 2, 3, 4, 5, 6];
 const storageKey = 'agenda-quadras-bookings';
-const adminWhatsappNumber = '5591993500177';
+const pendingSelectionKey = 'arena-abs-pending-selection';
 
 const weekRangeEl = document.querySelector('#week-range');
 const scheduleGrid = document.querySelector('#schedule-grid');
@@ -12,9 +12,9 @@ const selectedSlotTitle = document.querySelector('#selected-slot-title');
 const selectedSlotPrice = document.querySelector('#selected-slot-price');
 const slotDetails = document.querySelector('#slot-details');
 const selectionList = document.querySelector('#selection-list');
-const bookingForm = document.querySelector('#booking-form');
 const bookingSummary = document.querySelector('#booking-summary');
 const cancelBookingButton = document.querySelector('#cancel-booking');
+const continueBookingButton = document.querySelector('#continue-booking');
 const formMessage = document.querySelector('#form-message');
 const prevWeekButton = document.querySelector('#prev-week');
 const nextWeekButton = document.querySelector('#next-week');
@@ -23,9 +23,6 @@ const todayIndicator = document.querySelector('#today-indicator');
 const availabilitySummary = document.querySelector('#availability-summary');
 const bookingDrawer = document.querySelector('#booking-drawer');
 const closeDrawerButton = document.querySelector('#close-drawer');
-const customerNameInput = document.querySelector('#customer-name');
-const customerPhoneInput = document.querySelector('#customer-phone');
-const customerNotesInput = document.querySelector('#customer-notes');
 
 let currentStartDate = normalizeDate(new Date());
 let selectedMobileDate = normalizeDate(new Date());
@@ -43,6 +40,10 @@ function loadBookings() {
 
 function saveBookings(bookings) {
   localStorage.setItem(storageKey, JSON.stringify(bookings));
+}
+
+function savePendingSelections() {
+  localStorage.setItem(pendingSelectionKey, JSON.stringify(pendingSelections));
 }
 
 function normalizeDate(date) {
@@ -139,13 +140,6 @@ function findBooking(date, hour, court) {
   return loadBookings().find((booking) => booking.id === id);
 }
 
-function normalizeWhatsappNumber(phone) {
-  const digits = String(phone || '').replace(/\D/g, '');
-  if (!digits) return '';
-  if (digits.startsWith('55')) return digits;
-  return `55${digits}`;
-}
-
 function getPendingSelectionIndex(slotId) {
   return pendingSelections.findIndex((selection) => selection.id === slotId);
 }
@@ -168,10 +162,7 @@ function closeDrawer() {
 
 function clearPendingSelections() {
   pendingSelections = [];
-}
-
-function resetFormFields() {
-  bookingForm.reset();
+  localStorage.removeItem(pendingSelectionKey);
 }
 
 function resetInteractionState(options = {}) {
@@ -184,12 +175,11 @@ function resetInteractionState(options = {}) {
   slotDetails.className = 'slot-details empty-state';
   selectionList.innerHTML = '';
   selectionList.classList.add('hidden');
-  bookingForm.classList.add('hidden');
   bookingSummary.classList.add('hidden');
   bookingSummary.innerHTML = '';
+  continueBookingButton.classList.add('hidden');
   cancelBookingButton.classList.add('hidden');
   formMessage.textContent = '';
-  resetFormFields();
   closeDrawer();
 
   if (!keepFilter) {
@@ -272,7 +262,7 @@ function renderDesktopSchedule() {
           const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'slot-card--selected' : '';
           const price = getSlotPrice(hour);
-          const customerLine = booking ? booking.customerName : pending ? 'Pronto para confirmar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
+          const customerLine = booking ? booking.customerName : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
 
           return `
             <button class="slot-card slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${date.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -323,7 +313,7 @@ function renderMobileSchedule() {
           const pastSlot = isPastSlot(activeDate, hour);
           const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'mobile-slot-card--selected' : '';
-          const supportText = booking ? booking.customerName : pending ? 'Pronto para confirmar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
+          const supportText = booking ? booking.customerName : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
 
           return `
             <button class="mobile-slot-card mobile-slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${activeDate.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -366,15 +356,9 @@ function renderSelectionList() {
 
   selectionList.innerHTML = orderedSelections
     .map((selection) => `
-      <article class="selection-item">
-        <div>
-          <strong>Quadra ${selection.court} - ${selection.hour}h</strong>
-          <span>${formatDateLong(selection.date)}</span>
-        </div>
-        <div class="selection-item__meta">
-          <strong>${formatPrice(selection.price)}</strong>
-          <small>Toque no horario novamente para remover</small>
-        </div>
+      <article class="selection-item" title="${formatDateLong(selection.date)}">
+        <strong>${selection.hour}h</strong>
+        <span>${selection.court}</span>
       </article>
     `)
     .join('');
@@ -393,19 +377,18 @@ function renderReservedState() {
     <strong>Horario reservado</strong><br>
     Cliente: ${booking.customerName}<br>
     Telefone: ${booking.phone}<br>
-    Data: ${formatDateLong(new Date(booking.datetime))}<br>
-    Observacoes: ${booking.notes || 'Nenhuma'}
+    Data: ${formatDateLong(new Date(booking.datetime))}
   `;
 
   selectionList.classList.add('hidden');
   selectionList.innerHTML = '';
-  bookingForm.classList.add('hidden');
   bookingSummary.classList.remove('hidden');
   bookingSummary.innerHTML = `
     <strong>Status</strong>
     <span>Reserva confirmada para ${selectedReservation.hour}h na Quadra ${selectedReservation.court}.</span>
     <span>${canCancel ? 'Cancelamento liberado ate 1 hora antes.' : 'Cancelamento bloqueado: falta menos de 1 hora.'}</span>
   `;
+  continueBookingButton.classList.add('hidden');
   cancelBookingButton.classList.toggle('hidden', !canCancel);
   formMessage.textContent = canCancel ? '' : 'Nao e mais possivel cancelar este horario.';
   openDrawer();
@@ -417,12 +400,16 @@ function renderPendingState() {
     : `${pendingSelections.length} horarios selecionados`;
   selectedSlotPrice.textContent = formatPrice(getPendingTotal());
   slotDetails.className = 'slot-details';
-  slotDetails.textContent = 'Confira os horarios abaixo, preencha seus dados uma vez e confirme todas as reservas juntas.';
+  slotDetails.textContent = 'Horarios escolhidos:';
   renderSelectionList();
-  bookingSummary.classList.add('hidden');
-  bookingSummary.innerHTML = '';
+  bookingSummary.classList.remove('hidden');
+  bookingSummary.innerHTML = `
+    <strong>Resumo rapido</strong>
+    <span>${pendingSelections.length} horario(s) selecionado(s)</span>
+    <span>Total: ${formatPrice(getPendingTotal())}</span>
+  `;
+  continueBookingButton.classList.remove('hidden');
   cancelBookingButton.classList.add('hidden');
-  bookingForm.classList.remove('hidden');
   formMessage.textContent = '';
   openDrawer();
 }
@@ -434,9 +421,9 @@ function renderEmptyState() {
   slotDetails.textContent = 'Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.';
   selectionList.classList.add('hidden');
   selectionList.innerHTML = '';
-  bookingForm.classList.add('hidden');
   bookingSummary.classList.add('hidden');
   bookingSummary.innerHTML = '';
+  continueBookingButton.classList.add('hidden');
   cancelBookingButton.classList.add('hidden');
   formMessage.textContent = '';
   closeDrawer();
@@ -508,49 +495,6 @@ function togglePendingSelection(button) {
   renderAll();
 }
 
-function buildAdminWhatsappMessage(bookings, customerName, phone, notes) {
-  const lines = bookings
-    .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
-    .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
-    .join('\n');
-
-  return encodeURIComponent(
-    `Nova reserva - Arena ABS\n\n` +
-    `Cliente: ${customerName}\n` +
-    `Telefone: ${phone}\n\n` +
-    `Horarios reservados:\n${lines}\n\n` +
-    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n` +
-    `Observacoes: ${notes || 'Nenhuma'}`
-  );
-}
-
-function buildCustomerWhatsappMessage(bookings, customerName, notes) {
-  const lines = bookings
-    .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
-    .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
-    .join('\n');
-
-  return encodeURIComponent(
-    `Reserva confirmada - Arena ABS\n\n` +
-    `Cliente: ${customerName}\n\n` +
-    `Horarios:\n${lines}\n\n` +
-    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n` +
-    `Observacoes: ${notes || 'Nenhuma'}\n\n` +
-    `Aguardamos voce na Arena ABS.`
-  );
-}
-
-function openWhatsappConfirmation(bookings, customerName, phone, notes) {
-  const customerWhatsappNumber = normalizeWhatsappNumber(phone);
-  const adminUrl = `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone, notes)}`;
-  window.open(adminUrl, '_blank');
-
-  if (customerWhatsappNumber) {
-    const customerUrl = `https://wa.me/${customerWhatsappNumber}?text=${buildCustomerWhatsappMessage(bookings, customerName, notes)}`;
-    setTimeout(() => window.open(customerUrl, '_blank'), 250);
-  }
-}
-
 function handleSlotClick(event) {
   const button = event.target.closest('[data-slot-id]');
   if (!button) return;
@@ -568,51 +512,14 @@ mobileDayStrip.addEventListener('click', (event) => {
   renderMobileSchedule();
 });
 
-bookingForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  formMessage.textContent = '';
-
+continueBookingButton.addEventListener('click', () => {
   if (!pendingSelections.length) {
-    formMessage.textContent = 'Selecione pelo menos um horario disponivel.';
+    formMessage.textContent = 'Selecione pelo menos um horario.';
     return;
   }
 
-  const customerName = customerNameInput.value.trim();
-  const phone = customerPhoneInput.value.trim();
-  const notes = customerNotesInput.value.trim();
-
-  if (!customerName || !phone) {
-    formMessage.textContent = 'Preencha nome e telefone.';
-    return;
-  }
-
-  const bookings = loadBookings();
-  const newBookings = [];
-
-  for (const selection of pendingSelections) {
-    const alreadyBooked = bookings.find((booking) => booking.id === selection.id);
-    if (alreadyBooked || isPastSlot(selection.date, selection.hour)) {
-      formMessage.textContent = 'Um dos horarios selecionados ja nao esta mais disponivel. Atualize a selecao.';
-      renderAll();
-      return;
-    }
-
-    newBookings.push({
-      id: selection.id,
-      customerName,
-      phone,
-      notes,
-      court: selection.court,
-      hour: selection.hour,
-      price: selection.price,
-      datetime: buildSlotDate(selection.date, selection.hour).toISOString()
-    });
-  }
-
-  saveBookings([...bookings, ...newBookings]);
-  openWhatsappConfirmation(newBookings, customerName, phone, notes);
-  resetInteractionState();
-  renderAll();
+  savePendingSelections();
+  window.location.href = './checkout.html';
 });
 
 cancelBookingButton.addEventListener('click', () => {
@@ -662,3 +569,5 @@ courtFilter.addEventListener('change', () => {
 });
 
 renderAll();
+
+

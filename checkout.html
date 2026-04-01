@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arena ABS | Finalizar Reserva</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="checkout-body">
+  <main class="checkout-shell">
+    <section class="checkout-card">
+      <div class="checkout-header">
+        <div>
+          <span class="eyebrow eyebrow--light">Finalizar</span>
+          <h1>Confirme sua reserva</h1>
+          <p>Preencha nome e contato para concluir os horarios selecionados.</p>
+        </div>
+        <a class="ghost-button" href="./index.html">Voltar para agenda</a>
+      </div>
+
+      <div class="checkout-layout">
+        <section>
+          <h2 class="checkout-subtitle">Horarios escolhidos</h2>
+          <div id="checkout-selection-list" class="checkout-selection-list"></div>
+          <div id="checkout-total" class="checkout-total"></div>
+        </section>
+
+        <section>
+          <h2 class="checkout-subtitle">Seus dados</h2>
+          <form id="checkout-form" class="checkout-form">
+            <label class="form-field">
+              <span>Nome</span>
+              <input type="text" id="checkout-customer-name" required />
+            </label>
+            <label class="form-field">
+              <span>Contato</span>
+              <input type="tel" id="checkout-customer-phone" required />
+            </label>
+            <button class="primary-button" type="submit">Confirmar reserva</button>
+          </form>
+          <p id="checkout-message" class="form-message"></p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="./checkout.js"></script>
+</body>
+</html>
