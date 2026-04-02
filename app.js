@@ -226,6 +226,7 @@ function resetInteractionState(options = {}) {
   const { keepFilter = true } = options;
   selectedReservation = null;
   clearPendingSelections();
+  bookingDrawer.dataset.mode = 'empty';
   selectedSlotTitle.textContent = 'Selecione um ou mais horarios';
   selectedSlotPrice.textContent = 'R$ 0,00';
   slotDetails.textContent = 'Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.';
@@ -319,7 +320,7 @@ function renderDesktopSchedule() {
           const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'slot-card--selected' : '';
           const price = getSlotPrice(hour);
-          const customerLine = booking ? booking.customerName : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
+          const customerLine = booking ? 'Reservado' : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
 
           return `
             <button class="slot-card slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${date.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -370,7 +371,7 @@ function renderMobileSchedule() {
           const pastSlot = isPastSlot(activeDate, hour);
           const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'mobile-slot-card--selected' : '';
-          const supportText = booking ? booking.customerName : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
+          const supportText = booking ? 'Reservado' : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
 
           return `
             <button class="mobile-slot-card mobile-slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${activeDate.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -465,6 +466,7 @@ function renderPendingState() {
     <span>${pendingSelections.length} horario(s) selecionado(s)</span>
     <span>Total: ${formatPrice(getPendingTotal())}</span>
   `;
+  bookingDrawer.dataset.mode = 'pending';
   continueBookingButton.classList.remove('hidden');
   cancelBookingButton.classList.add('hidden');
   formMessage.textContent = '';
@@ -472,6 +474,7 @@ function renderPendingState() {
 }
 
 function renderEmptyState() {
+  bookingDrawer.dataset.mode = 'empty';
   selectedSlotTitle.textContent = 'Selecione um ou mais horarios';
   selectedSlotPrice.textContent = 'R$ 0,00';
   slotDetails.className = 'slot-details empty-state';
@@ -663,3 +666,5 @@ async function initializeApp() {
 }
 
 initializeApp();
+
+

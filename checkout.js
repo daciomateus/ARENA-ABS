@@ -50,9 +50,27 @@ function buildAdminWhatsappMessage(bookings, customerName, phone) {
   );
 }
 
+function isAppleMobile() {
+  const userAgent = navigator.userAgent || '';
+  return /iPhone|iPad|iPod/i.test(userAgent);
+}
+
 function openWhatsappConfirmation(bookings, customerName, phone) {
   const adminUrl = `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone)}`;
-  window.open(adminUrl, '_blank');
+
+  if (isAppleMobile()) {
+    window.location.assign(adminUrl);
+    return;
+  }
+
+  const popup = window.open(adminUrl, '_blank', 'noopener');
+
+  if (!popup) {
+    window.location.assign(adminUrl);
+    return;
+  }
+
+  window.location.href = './index.html';
 }
 
 function serializeBooking(booking) {
@@ -148,7 +166,6 @@ checkoutForm.addEventListener('submit', async (event) => {
     await insertReservations(newBookings);
     clearPendingSelections();
     openWhatsappConfirmation(newBookings, customerName, customerPhone);
-    window.location.href = './index.html';
   } catch (error) {
     console.error('Erro ao salvar reserva no Supabase:', error);
     checkoutMessage.textContent = 'Nao foi possivel salvar a reserva agora. Tente novamente.';
