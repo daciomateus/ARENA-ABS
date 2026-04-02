@@ -1,8 +1,9 @@
 const quadras = ['A', 'B', 'S', 'E'];
 const horarios = [17, 18, 19, 20, 21, 22];
 const diasReservaPermitidos = [1, 2, 3, 4, 5, 6];
-const storageKey = 'agenda-quadras-bookings';
 const pendingSelectionKey = 'arena-abs-pending-selection';
+const bookingsTable = 'reservas';
+const syncIntervalMs = 10000;
 
 const weekRangeEl = document.querySelector('#week-range');
 const scheduleGrid = document.querySelector('#schedule-grid');
@@ -29,17 +30,73 @@ let selectedMobileDate = normalizeDate(new Date());
 let selectedReservation = null;
 let selectedCourtFilter = 'all';
 let pendingSelections = [];
+let bookingsCache = [];
+let syncTimer = null;
 
-function loadBookings() {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey)) || [];
-  } catch {
-    return [];
-  }
+function normalizeBookingRow(row) {
+  return {
+    id: row.id,
+    customerName: row.customer_name,
+    phone: row.phone,
+    court: row.court,
+    hour: Number(row.hour),
+    price: Number(row.price),
+    datetime: row.datetime
+  };
 }
 
-function saveBookings(bookings) {
-  localStorage.setItem(storageKey, JSON.stringify(bookings));
+function serializeBooking(booking) {
+  return {
+    id: booking.id,
+    customer_name: booking.customerName,
+    phone: booking.phone,
+    court: booking.court,
+    hour: booking.hour,
+    price: booking.price,
+    datetime: booking.datetime
+  };
+}
+
+async function fetchBookings() {
+  const { data, error } = await window.supabaseClient
+    .from(bookingsTable)
+    .select('*')
+    .order('datetime', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  bookingsCache = (data || []).map(normalizeBookingRow);
+}
+
+async function insertBookings(bookings) {
+  const payload = bookings.map(serializeBooking);
+  const { data, error } = await window.supabaseClient
+    .from(bookingsTable)
+    .insert(payload)
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  bookingsCache = (data || []).map(normalizeBookingRow).concat(
+    bookingsCache.filter((existing) => !payload.some((item) => item.id === existing.id))
+  );
+}
+
+async function removeBooking(id) {
+  const { error } = await window.supabaseClient
+    .from(bookingsTable)
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+
+  bookingsCache = bookingsCache.filter((booking) => booking.id !== id);
 }
 
 function savePendingSelections() {
@@ -137,7 +194,7 @@ function isPastSlot(date, hour) {
 
 function findBooking(date, hour, court) {
   const id = getBookingId(date, hour, court);
-  return loadBookings().find((booking) => booking.id === id);
+  return bookingsCache.find((booking) => booking.id === id);
 }
 
 function getPendingSelectionIndex(slotId) {
@@ -501,6 +558,28 @@ function handleSlotClick(event) {
   togglePendingSelection(button);
 }
 
+async function refreshBookingsAndRender(showError = false) {
+  try {
+    await fetchBookings();
+    renderAll();
+  } catch (error) {
+    console.error('Erro ao sincronizar reservas com Supabase:', error);
+    if (showError) {
+      formMessage.textContent = 'Nao foi possivel sincronizar as reservas agora.';
+    }
+  }
+}
+
+function startSyncLoop() {
+  if (syncTimer) {
+    clearInterval(syncTimer);
+  }
+
+  syncTimer = setInterval(() => {
+    refreshBookingsAndRender(false);
+  }, syncIntervalMs);
+}
+
 scheduleGrid.addEventListener('click', handleSlotClick);
 mobileSchedule.addEventListener('click', handleSlotClick);
 
@@ -522,7 +601,7 @@ continueBookingButton.addEventListener('click', () => {
   window.location.href = './checkout.html';
 });
 
-cancelBookingButton.addEventListener('click', () => {
+cancelBookingButton.addEventListener('click', async () => {
   if (!selectedReservation?.booking) return;
 
   if (!canCancelBooking(selectedReservation.booking)) {
@@ -531,10 +610,14 @@ cancelBookingButton.addEventListener('click', () => {
     return;
   }
 
-  const bookings = loadBookings().filter((booking) => booking.id !== selectedReservation.booking.id);
-  saveBookings(bookings);
-  selectedReservation = null;
-  renderAll();
+  try {
+    await removeBooking(selectedReservation.booking.id);
+    selectedReservation = null;
+    renderAll();
+  } catch (error) {
+    console.error('Erro ao cancelar reserva:', error);
+    formMessage.textContent = 'Nao foi possivel cancelar a reserva agora.';
+  }
 });
 
 closeDrawerButton.addEventListener('click', () => {
@@ -568,6 +651,15 @@ courtFilter.addEventListener('change', () => {
   renderAll();
 });
 
-renderAll();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    refreshBookingsAndRender(false);
+  }
+});
 
+async function initializeApp() {
+  await refreshBookingsAndRender(true);
+  startSyncLoop();
+}
 
+initializeApp();

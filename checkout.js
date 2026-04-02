@@ -1,6 +1,6 @@
-const storageKey = 'agenda-quadras-bookings';
 const pendingSelectionKey = 'arena-abs-pending-selection';
-const adminWhatsappNumber = '5591993500177';
+const bookingsTable = 'reservas';
+const adminWhatsappNumber = '5591982926051';
 
 const checkoutSelectionList = document.querySelector('#checkout-selection-list');
 const checkoutTotal = document.querySelector('#checkout-total');
@@ -8,18 +8,6 @@ const checkoutForm = document.querySelector('#checkout-form');
 const checkoutMessage = document.querySelector('#checkout-message');
 const customerNameInput = document.querySelector('#checkout-customer-name');
 const customerPhoneInput = document.querySelector('#checkout-customer-phone');
-
-function loadBookings() {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveBookings(bookings) {
-  localStorage.setItem(storageKey, JSON.stringify(bookings));
-}
 
 function loadPendingSelections() {
   try {
@@ -47,13 +35,6 @@ function buildSlotDate(date, hour) {
   return slotDate;
 }
 
-function normalizeWhatsappNumber(phone) {
-  const digits = String(phone || '').replace(/\D/g, '');
-  if (!digits) return '';
-  if (digits.startsWith('55')) return digits;
-  return `55${digits}`;
-}
-
 function buildAdminWhatsappMessage(bookings, customerName, phone) {
   const lines = bookings
     .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
@@ -69,29 +50,43 @@ function buildAdminWhatsappMessage(bookings, customerName, phone) {
   );
 }
 
-function buildCustomerWhatsappMessage(bookings, customerName) {
-  const lines = bookings
-    .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
-    .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
-    .join('\n');
-
-  return encodeURIComponent(
-    `Reserva confirmada - Arena ABS\n\n` +
-    `Cliente: ${customerName}\n\n` +
-    `Horarios:\n${lines}\n\n` +
-    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n\n` +
-    `Aguardamos voce na Arena ABS.`
-  );
-}
-
 function openWhatsappConfirmation(bookings, customerName, phone) {
-  const customerWhatsappNumber = normalizeWhatsappNumber(phone);
   const adminUrl = `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone)}`;
   window.open(adminUrl, '_blank');
+}
 
-  if (customerWhatsappNumber) {
-    const customerUrl = `https://wa.me/${customerWhatsappNumber}?text=${buildCustomerWhatsappMessage(bookings, customerName)}`;
-    setTimeout(() => window.open(customerUrl, '_blank'), 250);
+function serializeBooking(booking) {
+  return {
+    id: booking.id,
+    customer_name: booking.customerName,
+    phone: booking.phone,
+    court: booking.court,
+    hour: booking.hour,
+    price: booking.price,
+    datetime: booking.datetime
+  };
+}
+
+async function findExistingReservations(ids) {
+  const { data, error } = await window.supabaseClient
+    .from(bookingsTable)
+    .select('id')
+    .in('id', ids);
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+async function insertReservations(bookings) {
+  const { error } = await window.supabaseClient
+    .from(bookingsTable)
+    .insert(bookings.map(serializeBooking));
+
+  if (error) {
+    throw error;
   }
 }
 
@@ -116,7 +111,7 @@ if (!pendingSelections.length) {
   checkoutTotal.textContent = `Total: ${formatPrice(pendingSelections.reduce((total, selection) => total + selection.price, 0))}`;
 }
 
-checkoutForm.addEventListener('submit', (event) => {
+checkoutForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   checkoutMessage.textContent = '';
 
@@ -133,29 +128,29 @@ checkoutForm.addEventListener('submit', (event) => {
     return;
   }
 
-  const bookings = loadBookings();
-  const newBookings = [];
+  const newBookings = pendingSelections.map((selection) => ({
+    id: selection.id,
+    customerName,
+    phone: customerPhone,
+    court: selection.court,
+    hour: selection.hour,
+    price: selection.price,
+    datetime: buildSlotDate(new Date(selection.date), selection.hour).toISOString()
+  }));
 
-  for (const selection of pendingSelections) {
-    const alreadyBooked = bookings.find((booking) => booking.id === selection.id);
-    if (alreadyBooked) {
+  try {
+    const existingReservations = await findExistingReservations(newBookings.map((booking) => booking.id));
+    if (existingReservations.length) {
       checkoutMessage.textContent = 'Um dos horarios acabou de ser reservado. Volte para a agenda e escolha novamente.';
       return;
     }
 
-    newBookings.push({
-      id: selection.id,
-      customerName,
-      phone: customerPhone,
-      court: selection.court,
-      hour: selection.hour,
-      price: selection.price,
-      datetime: buildSlotDate(new Date(selection.date), selection.hour).toISOString()
-    });
+    await insertReservations(newBookings);
+    clearPendingSelections();
+    openWhatsappConfirmation(newBookings, customerName, customerPhone);
+    window.location.href = './index.html';
+  } catch (error) {
+    console.error('Erro ao salvar reserva no Supabase:', error);
+    checkoutMessage.textContent = 'Nao foi possivel salvar a reserva agora. Tente novamente.';
   }
-
-  saveBookings([...bookings, ...newBookings]);
-  clearPendingSelections();
-  openWhatsappConfirmation(newBookings, customerName, customerPhone);
-  window.location.href = './index.html';
 });
