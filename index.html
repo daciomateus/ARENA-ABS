@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="page-shell">
-    <header class="hero">
+    <header class="hero hero--compact hero--micro">
       <div class="hero__copy">
         <div class="hero__brand">
           <div class="hero__logo" aria-hidden="true">
@@ -18,74 +18,72 @@
           </div>
           <div>
             <span class="eyebrow">ARENA ABS</span>
-            <p class="hero__kicker">Beach tennis e experiencias esportivas</p>
+            <p class="hero__kicker">Agenda, alunos e gestao</p>
           </div>
         </div>
-        <h1>Arena ABS</h1>
-        <p>Reserve sua quadra com uma agenda clara, acompanhe os horarios livres dos proximos dias e confirme tudo de forma rapida pelo WhatsApp.</p>
-        <div class="hero__stats">
+        <h1>Painel de acessos</h1>
+        <p>Escolha abaixo se voce quer reservar, entrar como aluno, abrir sua area ou acessar o painel admin.</p>
+        <div class="hero__stats hero__stats--compact hero__stats--micro">
           <div>
             <strong>4 quadras</strong>
             <span>A, B, S e E</span>
           </div>
           <div>
             <strong>Valores</strong>
-            <span>R$ 60 as 17h, R$ 70 a partir das 18h</span>
+            <span>17h: R$ 60 | apos 18h: R$ 70</span>
           </div>
           <div>
             <strong>Cancelamento</strong>
-            <span>Ate 1 hora antes do horario marcado</span>
+            <span>Ate 1h antes</span>
           </div>
         </div>
-        <div class="hero__actions">
-          <a class="ghost-button" href="./login.html">Login do aluno</a>
-          <a class="ghost-button" href="./cancel.html">Cancelar minha reserva</a>
-          <a class="ghost-button" href="./admin.html">Area admin</a>
-        </div>
-      </div>
-      <div class="hero__card">
-        <p class="hero__label">Reserva de quadras</p>
-        <ul>
-          <li>Funcionamento de segunda a sabado</li>
-          <li>Horarios: 17h, 18h, 19h, 20h, 21h e 22h</li>
-          <li>Monte reservas com mais de um horario e mais de uma quadra</li>
-        </ul>
       </div>
     </header>
 
     <main class="layout">
-      <section class="access-panel">
-        <div class="section-heading">
+      <section class="access-panel access-panel--compact">
+        <div class="section-heading section-heading--compact">
           <div>
             <span class="eyebrow eyebrow--light">Acessos</span>
-            <h2>Escolha por onde entrar</h2>
+            <h2>Entrar</h2>
           </div>
-          <span class="week-range-label access-label">Base pronta para reservas, login e mensalistas</span>
         </div>
 
-        <div class="access-grid">
+        <div class="access-grid access-grid--compact">
           <a class="access-card" href="./index.html#agenda">
-            <span class="access-card__eyebrow">Agenda</span>
+            <span class="access-card__eyebrow">Cliente</span>
             <strong>Reserva avulsa</strong>
-            <p>Cliente escolhe quadra, horario e finaliza a reserva rapidamente.</p>
+            <p>Escolher quadra e horario.</p>
           </a>
 
           <a class="access-card access-card--highlight" href="./login.html">
+            <span class="access-card__eyebrow">Entrada</span>
+            <strong>Entrar ou criar conta</strong>
+            <p>Login do aluno.</p>
+          </a>
+
+          <a class="access-card" href="./aluno.html">
             <span class="access-card__eyebrow">Aluno</span>
-            <strong>Login do aluno</strong>
-            <p>Entrada para mensalistas, historico de aulas e futura gestao de mensalidade.</p>
+            <strong>Area do aluno</strong>
+            <p>Cadastro e mensalidades.</p>
+          </a>
+
+          <a class="access-card" href="./cancel.html">
+            <span class="access-card__eyebrow">Reserva</span>
+            <strong>Cancelar reserva</strong>
+            <p>Com link pessoal.</p>
           </a>
 
           <a class="access-card" href="./admin.html">
             <span class="access-card__eyebrow">Gestao</span>
-            <strong>Area admin</strong>
-            <p>Controle de reservas, cancelamentos, alunos e cobrancas da arena.</p>
+            <strong>Painel admin</strong>
+            <p>Reservas, alunos e cobrancas.</p>
           </a>
         </div>
       </section>
 
       <section class="schedule-panel" id="agenda">
-        <div class="section-heading">
+        <div class="section-heading section-heading--compact">
           <div>
             <span class="eyebrow eyebrow--light">Agenda</span>
             <h2>Horarios disponiveis</h2>
@@ -116,7 +114,6 @@
           <div class="mobile-schedule" id="mobile-schedule"></div>
         </div>
 
-        <div class="availability-summary" id="availability-summary"></div>
         <div id="schedule-grid" class="schedule-grid"></div>
       </section>
     </main>
@@ -155,3 +152,5 @@
   <script src="./app.js"></script>
 </body>
 </html>
+
+

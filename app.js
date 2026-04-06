@@ -257,6 +257,10 @@ function renderHeaderInfo() {
 }
 
 function renderAvailabilitySummary() {
+  if (!availabilitySummary) {
+    return;
+  }
+
   const visibleDays = getVisibleDays();
   const visibleCourts = getVisibleCourts();
 
@@ -654,6 +658,7 @@ async function initializeApp() {
 }
 
 initializeApp();
+
 
 
 
