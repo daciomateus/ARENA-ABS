@@ -8,6 +8,11 @@ const checkoutForm = document.querySelector('#checkout-form');
 const checkoutMessage = document.querySelector('#checkout-message');
 const customerNameInput = document.querySelector('#checkout-customer-name');
 const customerPhoneInput = document.querySelector('#checkout-customer-phone');
+const checkoutSuccess = document.querySelector('#checkout-success');
+const cancelLinkText = document.querySelector('#cancel-link-text');
+const cancelLinkButton = document.querySelector('#cancel-link-button');
+const copyCancelLinkButton = document.querySelector('#copy-cancel-link');
+const openWhatsappButton = document.querySelector('#open-whatsapp-button');
 
 function loadPendingSelections() {
   try {
@@ -35,7 +40,24 @@ function buildSlotDate(date, hour) {
   return slotDate;
 }
 
-function buildAdminWhatsappMessage(bookings, customerName, phone) {
+function buildCancelUrl(cancelToken) {
+  return new URL(`./cancel.html?token=${encodeURIComponent(cancelToken)}`, window.location.href).href;
+}
+
+function createCancelToken() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `cancel-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function isAppleMobile() {
+  const userAgent = navigator.userAgent || '';
+  return /iPhone|iPad|iPod/i.test(userAgent);
+}
+
+function buildAdminWhatsappMessage(bookings, customerName, phone, cancelUrl) {
   const lines = bookings
     .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
     .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
@@ -46,31 +68,26 @@ function buildAdminWhatsappMessage(bookings, customerName, phone) {
     `Cliente: ${customerName}\n` +
     `Contato: ${phone}\n\n` +
     `Horarios reservados:\n${lines}\n\n` +
-    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}`
+    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n\n` +
+    `Link do cliente para cancelamento:\n${cancelUrl}`
   );
 }
 
-function isAppleMobile() {
-  const userAgent = navigator.userAgent || '';
-  return /iPhone|iPad|iPod/i.test(userAgent);
+function getWhatsappUrl(bookings, customerName, phone, cancelUrl) {
+  return `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone, cancelUrl)}`;
 }
 
-function openWhatsappConfirmation(bookings, customerName, phone) {
-  const adminUrl = `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone)}`;
-
+function openWhatsappAfterSave(whatsappUrl) {
   if (isAppleMobile()) {
-    window.location.assign(adminUrl);
+    window.location.assign(whatsappUrl);
     return;
   }
 
-  const popup = window.open(adminUrl, '_blank', 'noopener');
+  const popup = window.open(whatsappUrl, '_blank', 'noopener');
 
   if (!popup) {
-    window.location.assign(adminUrl);
-    return;
+    window.location.assign(whatsappUrl);
   }
-
-  window.location.href = './index.html';
 }
 
 function serializeBooking(booking) {
@@ -81,7 +98,8 @@ function serializeBooking(booking) {
     court: booking.court,
     hour: booking.hour,
     price: booking.price,
-    datetime: booking.datetime
+    datetime: booking.datetime,
+    cancel_token: booking.cancelToken
   };
 }
 
@@ -108,6 +126,24 @@ async function insertReservations(bookings) {
   }
 }
 
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  return false;
+}
+
+function showSuccessState(cancelUrl, whatsappUrl) {
+  checkoutForm.classList.add('hidden');
+  checkoutSuccess.classList.remove('hidden');
+  cancelLinkText.textContent = cancelUrl;
+  cancelLinkButton.href = cancelUrl;
+  openWhatsappButton.href = whatsappUrl;
+  checkoutMessage.textContent = 'Reserva salva. Se o WhatsApp nao abrir sozinho, toque no botao abaixo.';
+}
+
 const pendingSelections = loadPendingSelections();
 
 if (!pendingSelections.length) {
@@ -129,6 +165,18 @@ if (!pendingSelections.length) {
   checkoutTotal.textContent = `Total: ${formatPrice(pendingSelections.reduce((total, selection) => total + selection.price, 0))}`;
 }
 
+copyCancelLinkButton?.addEventListener('click', async () => {
+  const text = cancelLinkText.textContent.trim();
+  if (!text) {
+    return;
+  }
+
+  const copied = await copyText(text);
+  checkoutMessage.textContent = copied
+    ? 'Link copiado. Guarde esse endereco para cancelar a sua reserva depois.'
+    : 'Nao foi possivel copiar automaticamente. Segure o link e copie manualmente.';
+});
+
 checkoutForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   checkoutMessage.textContent = '';
@@ -146,6 +194,8 @@ checkoutForm.addEventListener('submit', async (event) => {
     return;
   }
 
+  const cancelToken = createCancelToken();
+  const cancelUrl = buildCancelUrl(cancelToken);
   const newBookings = pendingSelections.map((selection) => ({
     id: selection.id,
     customerName,
@@ -153,7 +203,8 @@ checkoutForm.addEventListener('submit', async (event) => {
     court: selection.court,
     hour: selection.hour,
     price: selection.price,
-    datetime: buildSlotDate(new Date(selection.date), selection.hour).toISOString()
+    datetime: buildSlotDate(new Date(selection.date), selection.hour).toISOString(),
+    cancelToken
   }));
 
   try {
@@ -163,9 +214,11 @@ checkoutForm.addEventListener('submit', async (event) => {
       return;
     }
 
+    const whatsappUrl = getWhatsappUrl(newBookings, customerName, customerPhone, cancelUrl);
     await insertReservations(newBookings);
     clearPendingSelections();
-    openWhatsappConfirmation(newBookings, customerName, customerPhone);
+    showSuccessState(cancelUrl, whatsappUrl);
+    setTimeout(() => openWhatsappAfterSave(whatsappUrl), 120);
   } catch (error) {
     console.error('Erro ao salvar reserva no Supabase:', error);
     checkoutMessage.textContent = 'Nao foi possivel salvar a reserva agora. Tente novamente.';

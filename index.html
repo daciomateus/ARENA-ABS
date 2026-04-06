@@ -37,6 +37,10 @@
             <span>Ate 1 hora antes do horario marcado</span>
           </div>
         </div>
+        <div class="hero__actions">
+          <a class="ghost-button" href="./cancel.html">Cancelar minha reserva</a>
+          <a class="ghost-button" href="./admin.html">Area admin</a>
+        </div>
       </div>
       <div class="hero__card">
         <p class="hero__label">Reserva de quadras</p>
@@ -87,7 +91,7 @@
     </main>
   </div>
 
-  <aside class="booking-drawer" id="booking-drawer">
+  <aside class="booking-drawer" id="booking-drawer" data-mode="empty">
     <div class="booking-drawer__panel">
       <div class="booking-drawer__header">
         <div>
@@ -109,7 +113,7 @@
 
       <div class="action-group">
         <button class="primary-button hidden" id="continue-booking" type="button">Finalizar reserva</button>
-        <button class="danger-button hidden" id="cancel-booking" type="button">Cancelar horario</button>
+
       </div>
 
       <p class="form-message" id="form-message"></p>
@@ -121,3 +125,4 @@
   <script src="./app.js"></script>
 </body>
 </html>
+

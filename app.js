@@ -236,8 +236,9 @@ function resetInteractionState(options = {}) {
   bookingSummary.classList.add('hidden');
   bookingSummary.innerHTML = '';
   continueBookingButton.classList.add('hidden');
-  cancelBookingButton.classList.add('hidden');
+  cancelBookingButton?.classList.add('hidden');
   formMessage.textContent = '';
+  bookingDrawer.dataset.mode = 'empty';
   closeDrawer();
 
   if (!keepFilter) {
@@ -426,16 +427,15 @@ function renderSelectionList() {
 
 function renderReservedState() {
   const booking = selectedReservation.booking;
-  const canCancel = canCancelBooking(booking);
 
+  bookingDrawer.dataset.mode = 'reserved';
   selectedSlotTitle.textContent = `Quadra ${selectedReservation.court} - ${selectedReservation.hour}h`;
   selectedSlotPrice.textContent = formatPrice(booking.price);
   slotDetails.className = 'slot-details';
   slotDetails.innerHTML = `
     <strong>Horario reservado</strong><br>
-    Cliente: ${booking.customerName}<br>
-    Telefone: ${booking.phone}<br>
-    Data: ${formatDateLong(new Date(booking.datetime))}
+    Data: ${formatDateLong(new Date(booking.datetime))}<br>
+    Status: indisponivel para nova reserva
   `;
 
   selectionList.classList.add('hidden');
@@ -443,12 +443,12 @@ function renderReservedState() {
   bookingSummary.classList.remove('hidden');
   bookingSummary.innerHTML = `
     <strong>Status</strong>
-    <span>Reserva confirmada para ${selectedReservation.hour}h na Quadra ${selectedReservation.court}.</span>
-    <span>${canCancel ? 'Cancelamento liberado ate 1 hora antes.' : 'Cancelamento bloqueado: falta menos de 1 hora.'}</span>
+    <span>Esse horario ja esta reservado.</span>
+    <span>O cliente cancela pelo proprio link e o admin cancela pela area administrativa.</span>
   `;
   continueBookingButton.classList.add('hidden');
-  cancelBookingButton.classList.toggle('hidden', !canCancel);
-  formMessage.textContent = canCancel ? '' : 'Nao e mais possivel cancelar este horario.';
+  cancelBookingButton?.classList.add('hidden');
+  formMessage.textContent = 'Para cancelar, use o link pessoal da reserva ou a area admin.';
   openDrawer();
 }
 
@@ -468,7 +468,7 @@ function renderPendingState() {
   `;
   bookingDrawer.dataset.mode = 'pending';
   continueBookingButton.classList.remove('hidden');
-  cancelBookingButton.classList.add('hidden');
+  cancelBookingButton?.classList.add('hidden');
   formMessage.textContent = '';
   openDrawer();
 }
@@ -484,8 +484,9 @@ function renderEmptyState() {
   bookingSummary.classList.add('hidden');
   bookingSummary.innerHTML = '';
   continueBookingButton.classList.add('hidden');
-  cancelBookingButton.classList.add('hidden');
+  cancelBookingButton?.classList.add('hidden');
   formMessage.textContent = '';
+  bookingDrawer.dataset.mode = 'empty';
   closeDrawer();
 }
 
@@ -604,23 +605,8 @@ continueBookingButton.addEventListener('click', () => {
   window.location.href = './checkout.html';
 });
 
-cancelBookingButton.addEventListener('click', async () => {
-  if (!selectedReservation?.booking) return;
-
-  if (!canCancelBooking(selectedReservation.booking)) {
-    formMessage.textContent = 'Nao e mais possivel cancelar este horario.';
-    renderSelectedState();
-    return;
-  }
-
-  try {
-    await removeBooking(selectedReservation.booking.id);
-    selectedReservation = null;
-    renderAll();
-  } catch (error) {
-    console.error('Erro ao cancelar reserva:', error);
-    formMessage.textContent = 'Nao foi possivel cancelar a reserva agora.';
-  }
+cancelBookingButton.addEventListener('click', () => {
+  formMessage.textContent = 'Use o link pessoal da reserva ou a area admin para cancelar.';
 });
 
 closeDrawerButton.addEventListener('click', () => {
@@ -666,5 +652,10 @@ async function initializeApp() {
 }
 
 initializeApp();
+
+
+
+
+
 
 
