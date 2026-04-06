@@ -1279,3 +1279,154 @@ html, body {
     width: auto;
   }
 }
+.access-panel {
+  padding: 28px;
+  border-radius: 28px;
+  background: rgba(255, 252, 247, 0.88);
+  border: 1px solid rgba(216, 111, 45, 0.08);
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+
+.access-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.access-card {
+  display: block;
+  padding: 18px;
+  border-radius: 22px;
+  text-decoration: none;
+  background: rgba(255, 248, 240, 0.92);
+  border: 1px solid rgba(216, 111, 45, 0.12);
+  box-shadow: 0 12px 28px rgba(142, 92, 42, 0.08);
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.access-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(142, 92, 42, 0.12);
+  border-color: rgba(216, 111, 45, 0.22);
+}
+
+.access-card--highlight {
+  background: linear-gradient(135deg, rgba(216, 111, 45, 0.12), rgba(255, 230, 196, 0.88));
+}
+
+.access-card__eyebrow,
+.access-card strong,
+.access-card p,
+.access-label,
+.support-copy {
+  display: block;
+}
+
+.access-card__eyebrow {
+  color: var(--brand);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.access-card strong {
+  margin-top: 10px;
+  color: var(--text);
+  font-size: 1.08rem;
+}
+
+.access-card p,
+.support-copy,
+.access-label {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.auth-card,
+.student-shell {
+  gap: 18px;
+}
+
+.auth-layout {
+  align-items: stretch;
+}
+
+.auth-layout > section,
+.auth-support,
+.support-card.admin-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 248, 240, 0.9);
+  border: 1px solid rgba(216, 111, 45, 0.1);
+}
+
+.auth-submit {
+  width: 100%;
+  font-weight: 800;
+}
+
+.support-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.student-grid {
+  margin-top: 8px;
+}
+
+.checkout-header--compact {
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .access-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .access-panel {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .access-grid {
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .access-card,
+  .auth-layout > section,
+  .auth-support,
+  .support-card.admin-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .support-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.monthly-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.monthly-form-grid .primary-button {
+  align-self: end;
+}
+
+@media (max-width: 860px) {
+  .monthly-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

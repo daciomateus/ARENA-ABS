@@ -13,7 +13,7 @@
         <div>
           <span class="eyebrow eyebrow--light">Admin</span>
           <h1>Area administrativa</h1>
-          <p>Somente o dono da arena deve usar esta tela para consultar e cancelar reservas.</p>
+          <p>Somente o dono da arena deve usar esta tela para consultar reservas, alunos e mensalidades.</p>
         </div>
         <a class="ghost-button" href="./index.html">Voltar para agenda</a>
       </div>
@@ -26,7 +26,7 @@
               <span>Senha do admin</span>
               <input type="password" id="admin-password" required />
             </label>
-            <button class="primary-button" type="submit">Acessar reservas</button>
+            <button class="primary-button" type="submit">Acessar painel</button>
           </form>
           <p id="admin-message" class="form-message"></p>
         </section>
@@ -40,6 +40,45 @@
             <button id="admin-logout" class="ghost-button" type="button">Sair</button>
           </div>
           <div id="admin-reservation-list" class="checkout-selection-list"></div>
+
+          <section class="support-card auth-support">
+            <div class="checkout-header checkout-header--compact">
+              <div>
+                <h2 class="checkout-subtitle">Mensalidades dos alunos</h2>
+                <p>Cadastre, atualize e acompanhe o status de pagamento.</p>
+              </div>
+            </div>
+
+            <form id="monthly-form" class="checkout-form monthly-form-grid">
+              <label class="form-field">
+                <span>Aluno</span>
+                <select id="monthly-student" required></select>
+              </label>
+              <label class="form-field">
+                <span>Referencia</span>
+                <input type="text" id="monthly-reference" placeholder="Abril/2026" required />
+              </label>
+              <label class="form-field">
+                <span>Valor</span>
+                <input type="number" step="0.01" id="monthly-value" required />
+              </label>
+              <label class="form-field">
+                <span>Vencimento</span>
+                <input type="date" id="monthly-due-date" required />
+              </label>
+              <label class="form-field">
+                <span>Status</span>
+                <select id="monthly-status" required>
+                  <option value="pendente">Pendente</option>
+                  <option value="pago">Pago</option>
+                  <option value="atrasado">Atrasado</option>
+                </select>
+              </label>
+              <button class="primary-button" type="submit">Salvar mensalidade</button>
+            </form>
+
+            <div id="admin-monthly-list" class="checkout-selection-list"></div>
+          </section>
         </section>
       </div>
     </section>

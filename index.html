@@ -38,6 +38,7 @@
           </div>
         </div>
         <div class="hero__actions">
+          <a class="ghost-button" href="./login.html">Login do aluno</a>
           <a class="ghost-button" href="./cancel.html">Cancelar minha reserva</a>
           <a class="ghost-button" href="./admin.html">Area admin</a>
         </div>
@@ -53,7 +54,37 @@
     </header>
 
     <main class="layout">
-      <section class="schedule-panel">
+      <section class="access-panel">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow eyebrow--light">Acessos</span>
+            <h2>Escolha por onde entrar</h2>
+          </div>
+          <span class="week-range-label access-label">Base pronta para reservas, login e mensalistas</span>
+        </div>
+
+        <div class="access-grid">
+          <a class="access-card" href="./index.html#agenda">
+            <span class="access-card__eyebrow">Agenda</span>
+            <strong>Reserva avulsa</strong>
+            <p>Cliente escolhe quadra, horario e finaliza a reserva rapidamente.</p>
+          </a>
+
+          <a class="access-card access-card--highlight" href="./login.html">
+            <span class="access-card__eyebrow">Aluno</span>
+            <strong>Login do aluno</strong>
+            <p>Entrada para mensalistas, historico de aulas e futura gestao de mensalidade.</p>
+          </a>
+
+          <a class="access-card" href="./admin.html">
+            <span class="access-card__eyebrow">Gestao</span>
+            <strong>Area admin</strong>
+            <p>Controle de reservas, cancelamentos, alunos e cobrancas da arena.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="schedule-panel" id="agenda">
         <div class="section-heading">
           <div>
             <span class="eyebrow eyebrow--light">Agenda</span>
@@ -113,7 +144,6 @@
 
       <div class="action-group">
         <button class="primary-button hidden" id="continue-booking" type="button">Finalizar reserva</button>
-
       </div>
 
       <p class="form-message" id="form-message"></p>
@@ -125,4 +155,3 @@
   <script src="./app.js"></script>
 </body>
 </html>
-

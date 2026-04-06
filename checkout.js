@@ -77,7 +77,33 @@ function getWhatsappUrl(bookings, customerName, phone, cancelUrl) {
   return `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone, cancelUrl)}`;
 }
 
-function openWhatsappAfterSave(whatsappUrl) {
+function openReservedWindow() {
+  const popup = window.open('', '_blank');
+
+  if (popup && popup.document) {
+    popup.document.write('<!doctype html><html><head><title>Abrindo WhatsApp...</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font-family:Arial,sans-serif;padding:24px;background:#fff7ef;color:#3a2a1e;">Encaminhando para o WhatsApp...</body></html>');
+    popup.document.close();
+  }
+
+  return popup;
+}
+
+function closeReservedWindow(popup) {
+  if (!popup) {
+    return;
+  }
+
+  try {
+    popup.close();
+  } catch {}
+}
+
+function openWhatsappAfterSave(whatsappUrl, reservedWindow) {
+  if (reservedWindow && !reservedWindow.closed) {
+    reservedWindow.location.href = whatsappUrl;
+    return;
+  }
+
   if (isAppleMobile()) {
     window.location.assign(whatsappUrl);
     return;
@@ -181,7 +207,10 @@ checkoutForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   checkoutMessage.textContent = '';
 
+  const reservedWindow = openReservedWindow();
+
   if (!pendingSelections.length) {
+    closeReservedWindow(reservedWindow);
     checkoutMessage.textContent = 'Volte para a agenda e escolha pelo menos um horario.';
     return;
   }
@@ -190,6 +219,7 @@ checkoutForm.addEventListener('submit', async (event) => {
   const customerPhone = customerPhoneInput.value.trim();
 
   if (!customerName || !customerPhone) {
+    closeReservedWindow(reservedWindow);
     checkoutMessage.textContent = 'Preencha nome e contato.';
     return;
   }
@@ -210,6 +240,7 @@ checkoutForm.addEventListener('submit', async (event) => {
   try {
     const existingReservations = await findExistingReservations(newBookings.map((booking) => booking.id));
     if (existingReservations.length) {
+      closeReservedWindow(reservedWindow);
       checkoutMessage.textContent = 'Um dos horarios acabou de ser reservado. Volte para a agenda e escolha novamente.';
       return;
     }
@@ -218,8 +249,9 @@ checkoutForm.addEventListener('submit', async (event) => {
     await insertReservations(newBookings);
     clearPendingSelections();
     showSuccessState(cancelUrl, whatsappUrl);
-    setTimeout(() => openWhatsappAfterSave(whatsappUrl), 120);
+    openWhatsappAfterSave(whatsappUrl, reservedWindow);
   } catch (error) {
+    closeReservedWindow(reservedWindow);
     console.error('Erro ao salvar reserva no Supabase:', error);
     checkoutMessage.textContent = 'Nao foi possivel salvar a reserva agora. Tente novamente.';
   }
