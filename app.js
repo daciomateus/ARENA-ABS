@@ -605,9 +605,11 @@ continueBookingButton.addEventListener('click', () => {
   window.location.href = './checkout.html';
 });
 
-cancelBookingButton.addEventListener('click', () => {
-  formMessage.textContent = 'Use o link pessoal da reserva ou a area admin para cancelar.';
-});
+if (cancelBookingButton) {
+  cancelBookingButton.addEventListener('click', () => {
+    formMessage.textContent = 'Use o link pessoal da reserva ou a area admin para cancelar.';
+  });
+}
 
 closeDrawerButton.addEventListener('click', () => {
   resetInteractionState();
@@ -652,6 +654,7 @@ async function initializeApp() {
 }
 
 initializeApp();
+
 
 
 
