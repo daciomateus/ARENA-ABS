@@ -24,6 +24,11 @@ const todayIndicator = document.querySelector('#today-indicator');
 const availabilitySummary = document.querySelector('#availability-summary');
 const bookingDrawer = document.querySelector('#booking-drawer');
 const closeDrawerButton = document.querySelector('#close-drawer');
+const sessionPill = document.querySelector('#session-pill');
+const sessionInitials = document.querySelector('#session-initials');
+const sessionName = document.querySelector('#session-name');
+const sessionRole = document.querySelector('#session-role');
+const loginCard = document.querySelector('#login-card');
 
 let currentStartDate = normalizeDate(new Date());
 let selectedMobileDate = normalizeDate(new Date());
@@ -33,6 +38,7 @@ let pendingSelections = [];
 let bookingsCache = [];
 let syncTimer = null;
 let currentSession = null;
+let currentStudent = null;
 
 function normalizeBookingRow(row) {
   return {
@@ -47,11 +53,64 @@ function normalizeBookingRow(row) {
   };
 }
 
+function getInitials(name) {
+  const source = (name || '').trim();
+  if (!source) return 'AA';
+
+  const pieces = source.split(/\s+/).filter(Boolean);
+  if (pieces.length === 1) {
+    return pieces[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${pieces[0][0] || ''}${pieces[1][0] || ''}`.toUpperCase();
+}
+
+function renderSessionPill() {
+  if (!sessionPill) {
+    return;
+  }
+
+  if (!currentSession) {
+    sessionPill.classList.add('hidden');
+    loginCard?.classList.remove('hidden');
+    return;
+  }
+
+  const displayName = currentStudent?.nome || currentSession.user.email || 'Aluno';
+  const roleLabel = currentSession.user.email === ADMIN_EMAIL
+    ? 'Conta logada com poderes de admin'
+    : 'Conta logada pronta para reservas e mensalidades';
+
+  sessionInitials.textContent = getInitials(displayName);
+  sessionName.textContent = displayName;
+  sessionRole.textContent = roleLabel;
+  sessionPill.classList.remove('hidden');
+  loginCard?.classList.add('hidden');
+}
+
 async function loadSession() {
   const { data, error } = await window.supabaseClient.auth.getSession();
-  if (!error) {
-    currentSession = data.session;
+  if (error) {
+    currentSession = null;
+    currentStudent = null;
+    renderSessionPill();
+    return;
   }
+
+  currentSession = data.session;
+  currentStudent = null;
+
+  if (currentSession?.user?.id) {
+    const { data: student } = await window.supabaseClient
+      .from('alunos')
+      .select('nome, telefone, email, status')
+      .eq('id', currentSession.user.id)
+      .maybeSingle();
+
+    currentStudent = student || null;
+  }
+
+  renderSessionPill();
 }
 
 async function fetchBookings() {
@@ -392,14 +451,14 @@ function renderReservedState() {
   bookingSummary.classList.remove('hidden');
   bookingSummary.innerHTML = `
     <strong>Status</strong>
-    <span>${isOwner ? 'Esse horario e seu. O cancelamento fica disponivel na sua area do aluno.' : isAdmin ? 'Voce entrou com a conta admin. O cancelamento fica no painel admin.' : 'Esse horario ja esta reservado.'}</span>
+    <span>${isOwner ? 'Esse horario e seu. O cancelamento fica disponivel na sua area do aluno.' : isAdmin ? 'Voce entrou com a conta admin. O cancelamento fica na propria area do aluno.' : 'Esse horario ja esta reservado.'}</span>
     <span>So o aluno dono da reserva ou o admin podem cancelar.</span>
   `;
   continueBookingButton.classList.add('hidden');
   formMessage.textContent = isOwner
     ? 'Abra a sua area do aluno para cancelar esse horario.'
     : isAdmin
-      ? 'Abra o painel admin para cancelar esse horario.'
+      ? 'Abra a sua area para cancelar esse horario como admin.'
       : 'Esse horario pertence a outra conta.';
   openDrawer();
 }

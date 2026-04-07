@@ -13,7 +13,7 @@
         <div>
           <span class="eyebrow eyebrow--light">Area do aluno</span>
           <h1>Minha area</h1>
-          <p>Esse e o painel do aluno depois do login. Aqui ele acompanha cadastro, reservas, cancelamentos e mensalidades.</p>
+          <p>Por aqui o aluno acompanha cadastro, reservas, cancelamentos, mensalidades e modalidades. Se a conta for admin, a mesma pagina libera poderes extras.</p>
         </div>
         <div class="support-actions">
           <a class="ghost-button" href="./index.html">Home</a>
@@ -24,12 +24,12 @@
 
       <div class="access-grid student-grid">
         <article class="access-card access-card--highlight">
-          <span class="access-card__eyebrow">Perfil do aluno</span>
+          <span class="access-card__eyebrow">Perfil</span>
           <strong id="student-email">Aluno conectado</strong>
           <p id="student-profile-copy">Esse painel mostra os dados vinculados ao seu cadastro.</p>
         </article>
 
-        <article class="access-card">
+        <article id="mensalidades" class="access-card">
           <span class="access-card__eyebrow">Mensalidade atual</span>
           <strong id="student-monthly-status">Carregando...</strong>
           <p id="student-monthly-copy">Assim que carregar, voce vai ver vencimento, valor e status do seu plano.</p>
@@ -38,7 +38,7 @@
         <article class="access-card">
           <span class="access-card__eyebrow">Reservas</span>
           <strong id="student-reservation-status">Carregando...</strong>
-          <p id="student-reservation-copy">Suas reservas aparecem logo abaixo, com cancelamento apenas da sua propria conta.</p>
+          <p id="student-reservation-copy">Suas reservas aparecem logo abaixo.</p>
         </article>
       </div>
 
@@ -46,7 +46,7 @@
         <div class="checkout-header checkout-header--compact">
           <div>
             <span class="eyebrow eyebrow--light">Minhas reservas</span>
-            <h2 class="checkout-subtitle">Horarios reservados</h2>
+            <h2 class="checkout-subtitle" id="student-booking-title">Horarios reservados</h2>
           </div>
         </div>
         <div id="student-reservation-list" class="checkout-selection-list"></div>
@@ -55,11 +55,109 @@
       <section class="support-card auth-support">
         <div class="checkout-header checkout-header--compact">
           <div>
-            <span class="eyebrow eyebrow--light">Minhas mensalidades</span>
-            <h2 class="checkout-subtitle">Cobrancas do aluno</h2>
+            <span class="eyebrow eyebrow--light">Mensalidades</span>
+            <h2 class="checkout-subtitle">Cobrancas</h2>
           </div>
         </div>
         <div id="student-monthly-list" class="checkout-selection-list"></div>
+      </section>
+
+      <section class="support-card auth-support" id="aulas-beach">
+        <div class="checkout-header checkout-header--compact">
+          <div>
+            <span class="eyebrow eyebrow--light">Aulas</span>
+            <h2 class="checkout-subtitle">Beach tennis</h2>
+            <p class="support-copy">Escolha entre os professores Caio e Iago.</p>
+          </div>
+        </div>
+        <div class="access-grid access-grid--two">
+          <article class="access-card access-card--plan">
+            <span class="access-card__eyebrow">Professor</span>
+            <strong>Caio</strong>
+            <p>1x na semana: R$ 130</p>
+            <p>2x na semana: R$ 250</p>
+          </article>
+          <article class="access-card access-card--plan">
+            <span class="access-card__eyebrow">Professor</span>
+            <strong>Iago</strong>
+            <p>1x na semana: R$ 130</p>
+            <p>2x na semana: R$ 250</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="support-card auth-support" id="aulas-futevolei">
+        <div class="checkout-header checkout-header--compact">
+          <div>
+            <span class="eyebrow eyebrow--light">Aulas</span>
+            <h2 class="checkout-subtitle">Futevolei</h2>
+            <p class="support-copy">Opcao com o professor Marrom.</p>
+          </div>
+        </div>
+        <div class="access-grid access-grid--two">
+          <article class="access-card access-card--plan">
+            <span class="access-card__eyebrow">Professor</span>
+            <strong>Marrom</strong>
+            <p>1x na semana: R$ 80</p>
+            <p>Plano ideal para novos alunos.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="admin-tools" class="support-card auth-support hidden">
+        <div class="checkout-header checkout-header--compact">
+          <div>
+            <span class="eyebrow eyebrow--light">Ferramentas admin</span>
+            <h2 class="checkout-subtitle">Gestao liberada para esta conta</h2>
+            <p class="support-copy">Como esta conta e admin, voce pode cancelar qualquer reserva e gerenciar mensalidades sem sair desta area.</p>
+          </div>
+        </div>
+
+        <div class="checkout-header checkout-header--compact">
+          <div>
+            <h3 class="checkout-subtitle">Todas as reservas</h3>
+          </div>
+        </div>
+        <div id="admin-reservation-list" class="checkout-selection-list"></div>
+
+        <section class="support-card auth-support">
+          <div class="checkout-header checkout-header--compact">
+            <div>
+              <h3 class="checkout-subtitle">Mensalidades dos alunos</h3>
+              <p>Cadastre, atualize e acompanhe o status de pagamento.</p>
+            </div>
+          </div>
+
+          <form id="monthly-form" class="checkout-form monthly-form-grid">
+            <label class="form-field">
+              <span>Aluno</span>
+              <select id="monthly-student" required></select>
+            </label>
+            <label class="form-field">
+              <span>Referencia</span>
+              <input type="text" id="monthly-reference" placeholder="Abril/2026" required />
+            </label>
+            <label class="form-field">
+              <span>Valor</span>
+              <input type="number" step="0.01" id="monthly-value" required />
+            </label>
+            <label class="form-field">
+              <span>Vencimento</span>
+              <input type="date" id="monthly-due-date" required />
+            </label>
+            <label class="form-field">
+              <span>Status</span>
+              <select id="monthly-status" required>
+                <option value="pendente">Pendente</option>
+                <option value="pago">Pago</option>
+                <option value="atrasado">Atrasado</option>
+              </select>
+            </label>
+            <button class="primary-button" type="submit">Salvar mensalidade</button>
+          </form>
+
+          <div id="admin-monthly-list" class="checkout-selection-list"></div>
+        </section>
       </section>
 
       <p id="student-message" class="form-message"></p>

@@ -15,15 +15,7 @@ function showMessage(message, isError = false) {
   authMessage.style.color = isError ? '#b43a3a' : '';
 }
 
-function getRedirectPath(user) {
-  return user?.email === ADMIN_EMAIL ? './admin.html' : './aluno.html';
-}
-
 async function ensureStudentProfile(user, profile = {}) {
-  if (user.email === ADMIN_EMAIL) {
-    return;
-  }
-
   const payload = {
     id: user.id,
     nome: profile.nome || user.user_metadata?.nome || null,
@@ -50,7 +42,7 @@ async function redirectIfLoggedIn() {
   }
 
   if (data.session) {
-    window.location.href = getRedirectPath(data.session.user);
+    window.location.href = './index.html';
   }
 }
 
@@ -79,8 +71,8 @@ loginForm?.addEventListener('submit', async (event) => {
     return;
   }
 
-  showMessage('Login feito com sucesso. Abrindo sua area...');
-  window.location.href = getRedirectPath(data.user);
+  showMessage(data.user?.email === ADMIN_EMAIL ? 'Login admin feito com sucesso. Voltando para a home...' : 'Login feito com sucesso. Voltando para a home...');
+  window.location.href = './index.html';
 });
 
 registerForm?.addEventListener('submit', async (event) => {
@@ -124,8 +116,8 @@ registerForm?.addEventListener('submit', async (event) => {
     return;
   }
 
-  showMessage('Conta criada com sucesso. Abrindo sua area...');
-  window.location.href = getRedirectPath(data.user);
+  showMessage(email === ADMIN_EMAIL ? 'Conta admin criada com sucesso. Voltando para a home...' : 'Conta criada com sucesso. Voltando para a home...');
+  window.location.href = './index.html';
 });
 
 redirectIfLoggedIn();

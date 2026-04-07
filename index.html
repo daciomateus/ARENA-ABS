@@ -10,19 +10,30 @@
   <div class="page-shell">
     <header class="hero hero--compact hero--micro">
       <div class="hero__copy">
-        <div class="hero__brand">
-          <div class="hero__logo" aria-hidden="true">
-            <span>A</span>
-            <span>B</span>
-            <span>S</span>
+        <div class="hero__top">
+          <div class="hero__brand">
+            <div class="hero__logo" aria-hidden="true">
+              <span>A</span>
+              <span>B</span>
+              <span>S</span>
+            </div>
+            <div>
+              <span class="eyebrow">ARENA ABS</span>
+              <p class="hero__kicker">Agenda, alunos, aulas e gestao</p>
+            </div>
           </div>
-          <div>
-            <span class="eyebrow">ARENA ABS</span>
-            <p class="hero__kicker">Agenda, alunos e gestao</p>
+
+          <div id="session-pill" class="session-pill hidden">
+            <div id="session-initials" class="session-pill__avatar">AA</div>
+            <div class="session-pill__copy">
+              <strong id="session-name">Visitante</strong>
+              <span id="session-role">Entre para liberar sua area</span>
+            </div>
           </div>
         </div>
-        <h1>Painel de acessos</h1>
-        <p>Entre como aluno para reservar e cancelar os seus horarios. O admin usa o proprio painel para fazer a gestao.</p>
+
+        <h1>Painel inicial</h1>
+        <p>Crie sua conta, volte para esta pagina ja logado e escolha entre aluguel de quadras, mensalidade e modalidades da Arena ABS. A conta <strong>mateustrgn@gmail.com</strong> recebe poderes extras dentro da propria area.</p>
         <div class="hero__stats hero__stats--compact hero__stats--micro">
           <div>
             <strong>Quadras</strong>
@@ -44,29 +55,79 @@
       <section class="access-panel access-panel--compact">
         <div class="section-heading section-heading--compact">
           <div>
-            <span class="eyebrow eyebrow--light">Acessos</span>
-            <h2>Entrar</h2>
+            <span class="eyebrow eyebrow--light">Guia inicial</span>
+            <h2>Escolha por onde seguir</h2>
           </div>
         </div>
 
-        <div class="access-grid access-grid--compact access-grid--three">
-          <a class="access-card access-card--highlight" href="./login.html">
+        <div class="access-grid access-grid--dashboard">
+          <a id="login-card" class="access-card access-card--highlight" href="./login.html">
             <span class="access-card__eyebrow">Entrada</span>
             <strong>Entrar ou criar conta</strong>
-            <p>Login do aluno.</p>
+            <p>Crie seu acesso com nome, telefone, e-mail e senha.</p>
+          </a>
+
+          <a class="access-card" href="#agenda">
+            <span class="access-card__eyebrow">Quadras</span>
+            <strong>Aluguel de quadras</strong>
+            <p>Escolha horario, veja disponibilidade e finalize a reserva.</p>
+          </a>
+
+          <a class="access-card" href="./aluno.html#mensalidades">
+            <span class="access-card__eyebrow">Mensalidade</span>
+            <strong>Pagamento mensal</strong>
+            <p>Acompanhe vencimento, status e cobrancas da sua conta.</p>
+          </a>
+
+          <a class="access-card" href="./aluno.html#aulas-beach">
+            <span class="access-card__eyebrow">Aulas</span>
+            <strong>Beach tennis</strong>
+            <p>Veja professores Caio e Iago e escolha a frequencia ideal.</p>
+          </a>
+
+          <a class="access-card" href="./aluno.html#aulas-futevolei">
+            <span class="access-card__eyebrow">Aulas</span>
+            <strong>Futevolei</strong>
+            <p>Conheca a opcao com o professor Marrom.</p>
           </a>
 
           <a class="access-card" href="./aluno.html">
-            <span class="access-card__eyebrow">Aluno</span>
-            <strong>Area do aluno</strong>
-            <p>Reservas, cadastro e mensalidades.</p>
+            <span class="access-card__eyebrow">Minha area</span>
+            <strong>Conta do aluno</strong>
+            <p>Reservas, cancelamentos, cadastro e area com poderes extras para admin.</p>
           </a>
+        </div>
+      </section>
 
-          <a class="access-card" href="./admin.html">
-            <span class="access-card__eyebrow">Gestao</span>
-            <strong>Painel admin</strong>
-            <p>Reservas, alunos e cobrancas.</p>
-          </a>
+      <section class="access-panel access-panel--compact">
+        <div class="section-heading section-heading--compact">
+          <div>
+            <span class="eyebrow eyebrow--light">Modalidades</span>
+            <h2>Aulas e planos</h2>
+          </div>
+        </div>
+
+        <div class="access-grid access-grid--three">
+          <article class="access-card access-card--plan">
+            <span class="access-card__eyebrow">Beach tennis</span>
+            <strong>Professor Caio</strong>
+            <p>1x na semana: R$ 130</p>
+            <p>2x na semana: R$ 250</p>
+          </article>
+
+          <article class="access-card access-card--plan">
+            <span class="access-card__eyebrow">Beach tennis</span>
+            <strong>Professor Iago</strong>
+            <p>1x na semana: R$ 130</p>
+            <p>2x na semana: R$ 250</p>
+          </article>
+
+          <article class="access-card access-card--plan">
+            <span class="access-card__eyebrow">Futevolei</span>
+            <strong>Professor Marrom</strong>
+            <p>1x na semana: R$ 80</p>
+            <p>Plano em destaque para novos alunos.</p>
+          </article>
         </div>
       </section>
 

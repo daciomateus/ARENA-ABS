@@ -1600,3 +1600,78 @@ html, body {
   }
 }
 
+
+.hero__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.session-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 248, 241, 0.16);
+  border: 1px solid rgba(255, 240, 225, 0.24);
+  backdrop-filter: blur(10px);
+  min-width: 220px;
+}
+
+.session-pill__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 241, 225, 0.22);
+  color: white;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.session-pill__copy {
+  display: grid;
+  gap: 2px;
+}
+
+.session-pill__copy strong {
+  font-size: 0.95rem;
+}
+
+.session-pill__copy span {
+  color: rgba(255, 244, 233, 0.82);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.access-grid--dashboard {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.access-grid--two {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.access-card--plan p + p {
+  margin-top: 6px;
+}
+
+#login-card.hidden {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .hero__top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .session-pill {
+    min-width: 0;
+    width: 100%;
+  }
+}
