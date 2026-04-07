@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arena ABS | Area Admin</title>
+  <title>Arena ABS | Painel Admin</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body class="checkout-body">
@@ -12,22 +12,19 @@
       <div class="checkout-header">
         <div>
           <span class="eyebrow eyebrow--light">Admin</span>
-          <h1>Area administrativa</h1>
-          <p>Somente o dono da arena deve usar esta tela para consultar reservas, alunos e mensalidades.</p>
+          <h1>Painel administrativo</h1>
+          <p>Entre pelo login normal com <strong>mateustrgn@gmail.com</strong>. Essa conta recebe acesso total para reservas, alunos e mensalidades.</p>
         </div>
         <a class="ghost-button" href="./index.html">Voltar para agenda</a>
       </div>
 
       <div class="checkout-layout checkout-layout--stacked">
-        <section id="admin-auth-card">
-          <h2 class="checkout-subtitle">Entrar</h2>
-          <form id="admin-login-form" class="checkout-form">
-            <label class="form-field">
-              <span>Senha do admin</span>
-              <input type="password" id="admin-password" required />
-            </label>
-            <button class="primary-button" type="submit">Acessar painel</button>
-          </form>
+        <section id="admin-auth-card" class="support-card auth-support">
+          <h2 class="checkout-subtitle">Acesso restrito</h2>
+          <p class="support-copy">Use o login normal do sistema. Se a conta conectada for <strong>mateustrgn@gmail.com</strong>, o painel libera automaticamente.</p>
+          <div class="support-actions">
+            <button id="admin-login-link" class="primary-button" type="button">Entrar com a conta admin</button>
+          </div>
           <p id="admin-message" class="form-message"></p>
         </section>
 

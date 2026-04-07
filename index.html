@@ -22,10 +22,10 @@
           </div>
         </div>
         <h1>Painel de acessos</h1>
-        <p>Escolha abaixo se voce quer reservar, entrar como aluno, abrir sua area ou acessar o painel admin.</p>
+        <p>Entre como aluno para reservar e cancelar os seus horarios. O admin usa o proprio painel para fazer a gestao.</p>
         <div class="hero__stats hero__stats--compact hero__stats--micro">
           <div>
-            <strong>4 quadras</strong>
+            <strong>Quadras</strong>
             <span>A, B, S e E</span>
           </div>
           <div>
@@ -34,7 +34,7 @@
           </div>
           <div>
             <strong>Cancelamento</strong>
-            <span>Ate 1h antes</span>
+            <span>Só aluno dono ou admin</span>
           </div>
         </div>
       </div>
@@ -49,13 +49,7 @@
           </div>
         </div>
 
-        <div class="access-grid access-grid--compact">
-          <a class="access-card" href="./index.html#agenda">
-            <span class="access-card__eyebrow">Cliente</span>
-            <strong>Reserva avulsa</strong>
-            <p>Escolher quadra e horario.</p>
-          </a>
-
+        <div class="access-grid access-grid--compact access-grid--three">
           <a class="access-card access-card--highlight" href="./login.html">
             <span class="access-card__eyebrow">Entrada</span>
             <strong>Entrar ou criar conta</strong>
@@ -65,13 +59,7 @@
           <a class="access-card" href="./aluno.html">
             <span class="access-card__eyebrow">Aluno</span>
             <strong>Area do aluno</strong>
-            <p>Cadastro e mensalidades.</p>
-          </a>
-
-          <a class="access-card" href="./cancel.html">
-            <span class="access-card__eyebrow">Reserva</span>
-            <strong>Cancelar reserva</strong>
-            <p>Com link pessoal.</p>
+            <p>Reservas, cadastro e mensalidades.</p>
           </a>
 
           <a class="access-card" href="./admin.html">
@@ -133,14 +121,14 @@
       </div>
 
       <div id="slot-details" class="slot-details empty-state">
-        Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.
+        Entre como aluno para reservar seus horarios. Depois, voce acompanha e cancela tudo pela sua area.
       </div>
 
       <div id="selection-list" class="selection-list hidden"></div>
       <div id="booking-summary" class="booking-summary hidden"></div>
 
       <div class="action-group">
-        <button class="primary-button hidden" id="continue-booking" type="button">Finalizar reserva</button>
+        <button class="primary-button hidden" id="continue-booking" type="button">Reservar como aluno</button>
       </div>
 
       <p class="form-message" id="form-message"></p>
@@ -152,5 +140,3 @@
   <script src="./app.js"></script>
 </body>
 </html>
-
-

@@ -6,13 +6,13 @@ const checkoutSelectionList = document.querySelector('#checkout-selection-list')
 const checkoutTotal = document.querySelector('#checkout-total');
 const checkoutForm = document.querySelector('#checkout-form');
 const checkoutMessage = document.querySelector('#checkout-message');
-const customerNameInput = document.querySelector('#checkout-customer-name');
-const customerPhoneInput = document.querySelector('#checkout-customer-phone');
 const checkoutSuccess = document.querySelector('#checkout-success');
-const cancelLinkText = document.querySelector('#cancel-link-text');
-const cancelLinkButton = document.querySelector('#cancel-link-button');
-const copyCancelLinkButton = document.querySelector('#copy-cancel-link');
 const openWhatsappButton = document.querySelector('#open-whatsapp-button');
+const checkoutStudentName = document.querySelector('#checkout-student-name');
+const checkoutStudentMeta = document.querySelector('#checkout-student-meta');
+
+let currentSession = null;
+let currentStudent = null;
 
 function loadPendingSelections() {
   try {
@@ -40,19 +40,7 @@ function buildSlotDate(date, hour) {
   return slotDate;
 }
 
-function buildCancelUrl(cancelToken) {
-  return new URL(`./cancel.html?token=${encodeURIComponent(cancelToken)}`, window.location.href).href;
-}
-
-function createCancelToken() {
-  if (window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
-  }
-
-  return `cancel-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function buildAdminWhatsappMessage(bookings, customerName, phone, cancelUrl) {
+function buildAdminWhatsappMessage(bookings, student) {
   const lines = bookings
     .sort((first, second) => new Date(first.datetime).getTime() - new Date(second.datetime).getTime())
     .map((booking) => `- Quadra ${booking.court} | ${formatDateLong(new Date(booking.datetime))} | ${booking.hour}h | ${formatPrice(booking.price)}`)
@@ -60,16 +48,16 @@ function buildAdminWhatsappMessage(bookings, customerName, phone, cancelUrl) {
 
   return encodeURIComponent(
     `Nova reserva - Arena ABS\n\n` +
-    `Cliente: ${customerName}\n` +
-    `Contato: ${phone}\n\n` +
+    `Aluno: ${student.nome || student.email}\n` +
+    `Contato: ${student.telefone || 'nao informado'}\n` +
+    `E-mail: ${student.email}\n\n` +
     `Horarios reservados:\n${lines}\n\n` +
-    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}\n\n` +
-    `Link do cliente para cancelamento:\n${cancelUrl}`
+    `Total: ${formatPrice(bookings.reduce((total, booking) => total + booking.price, 0))}`
   );
 }
 
-function getWhatsappUrl(bookings, customerName, phone, cancelUrl) {
-  return `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, customerName, phone, cancelUrl)}`;
+function getWhatsappUrl(bookings, student) {
+  return `https://wa.me/${adminWhatsappNumber}?text=${buildAdminWhatsappMessage(bookings, student)}`;
 }
 
 function openWhatsappAfterSave(whatsappUrl) {
@@ -85,7 +73,8 @@ function serializeBooking(booking) {
     hour: booking.hour,
     price: booking.price,
     datetime: booking.datetime,
-    cancel_token: booking.cancelToken
+    aluno_id: booking.alunoId,
+    cancel_token: null
   };
 }
 
@@ -95,10 +84,7 @@ async function findExistingReservations(ids) {
     .select('id')
     .in('id', ids);
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data || [];
 }
 
@@ -107,27 +93,44 @@ async function insertReservations(bookings) {
     .from(bookingsTable)
     .insert(bookings.map(serializeBooking));
 
+  if (error) throw error;
+}
+
+function showSuccessState(whatsappUrl) {
+  checkoutForm.classList.add('hidden');
+  checkoutSuccess.classList.remove('hidden');
+  openWhatsappButton.href = whatsappUrl;
+  checkoutMessage.textContent = 'Reserva salva. Se o WhatsApp nao abrir sozinho, toque no botao abaixo.';
+}
+
+async function loadStudentContext() {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+
   if (error) {
     throw error;
   }
-}
 
-async function copyText(text) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return true;
+  currentSession = data.session;
+
+  if (!currentSession) {
+    window.location.href = './login.html';
+    return false;
   }
 
-  return false;
-}
+  const { data: student, error: studentError } = await window.supabaseClient
+    .from('alunos')
+    .select('id, nome, telefone, email, status')
+    .eq('id', currentSession.user.id)
+    .single();
 
-function showSuccessState(cancelUrl, whatsappUrl) {
-  checkoutForm.classList.add('hidden');
-  checkoutSuccess.classList.remove('hidden');
-  cancelLinkText.textContent = cancelUrl;
-  cancelLinkButton.href = cancelUrl;
-  openWhatsappButton.href = whatsappUrl;
-  checkoutMessage.textContent = 'Reserva salva. Se o WhatsApp nao abrir sozinho, toque no botao abaixo.';
+  if (studentError) {
+    throw studentError;
+  }
+
+  currentStudent = student;
+  checkoutStudentName.textContent = student.nome || student.email;
+  checkoutStudentMeta.textContent = `Telefone: ${student.telefone || 'nao informado'} | Status: ${student.status || 'ativo'}`;
+  return true;
 }
 
 const pendingSelections = loadPendingSelections();
@@ -151,18 +154,6 @@ if (!pendingSelections.length) {
   checkoutTotal.textContent = `Total: ${formatPrice(pendingSelections.reduce((total, selection) => total + selection.price, 0))}`;
 }
 
-copyCancelLinkButton?.addEventListener('click', async () => {
-  const text = cancelLinkText.textContent.trim();
-  if (!text) {
-    return;
-  }
-
-  const copied = await copyText(text);
-  checkoutMessage.textContent = copied
-    ? 'Link copiado. Guarde esse endereco para cancelar a sua reserva depois.'
-    : 'Nao foi possivel copiar automaticamente. Segure o link e copie manualmente.';
-});
-
 checkoutForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   checkoutMessage.textContent = '';
@@ -172,25 +163,21 @@ checkoutForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const customerName = customerNameInput.value.trim();
-  const customerPhone = customerPhoneInput.value.trim();
-
-  if (!customerName || !customerPhone) {
-    checkoutMessage.textContent = 'Preencha nome e contato.';
+  if (!currentSession || !currentStudent) {
+    checkoutMessage.textContent = 'Entre como aluno para confirmar a reserva.';
+    window.location.href = './login.html';
     return;
   }
 
-  const cancelToken = createCancelToken();
-  const cancelUrl = buildCancelUrl(cancelToken);
   const newBookings = pendingSelections.map((selection) => ({
     id: selection.id,
-    customerName,
-    phone: customerPhone,
+    customerName: currentStudent.nome || currentStudent.email,
+    phone: currentStudent.telefone || '',
     court: selection.court,
     hour: selection.hour,
     price: selection.price,
     datetime: buildSlotDate(new Date(selection.date), selection.hour).toISOString(),
-    cancelToken
+    alunoId: currentSession.user.id
   }));
 
   try {
@@ -200,13 +187,18 @@ checkoutForm.addEventListener('submit', async (event) => {
       return;
     }
 
-    const whatsappUrl = getWhatsappUrl(newBookings, customerName, customerPhone, cancelUrl);
+    const whatsappUrl = getWhatsappUrl(newBookings, currentStudent);
     await insertReservations(newBookings);
     clearPendingSelections();
-    showSuccessState(cancelUrl, whatsappUrl);
+    showSuccessState(whatsappUrl);
     openWhatsappAfterSave(whatsappUrl);
   } catch (error) {
     console.error('Erro ao salvar reserva no Supabase:', error);
     checkoutMessage.textContent = 'Nao foi possivel salvar a reserva agora. Tente novamente.';
   }
+});
+
+loadStudentContext().catch((error) => {
+  console.error('Erro ao carregar contexto do aluno no checkout:', error);
+  checkoutMessage.textContent = 'Entre como aluno para continuar.';
 });

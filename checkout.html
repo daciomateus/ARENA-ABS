@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arena ABS | Finalizar Reserva</title>
+  <title>Arena ABS | Confirmar Reserva</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body class="checkout-body">
@@ -11,41 +11,36 @@
     <section class="checkout-card">
       <div class="checkout-header">
         <div>
-          <span class="eyebrow eyebrow--light">Finalizar</span>
-          <h1>Confirme sua reserva</h1>
-          <p>Preencha nome e contato para concluir os horarios selecionados.</p>
+          <span class="eyebrow eyebrow--light">Reserva do aluno</span>
+          <h1>Confirmar reserva</h1>
+          <p>Os horarios serao vinculados ao aluno logado. O cancelamento depois fica disponivel so para essa mesma conta ou para o admin.</p>
         </div>
         <a class="ghost-button" href="./index.html">Voltar para agenda</a>
       </div>
 
-      <div class="checkout-layout">
+      <div class="checkout-layout checkout-layout--stacked">
         <section>
           <h2 class="checkout-subtitle">Horarios escolhidos</h2>
           <div id="checkout-selection-list" class="checkout-selection-list"></div>
           <div id="checkout-total" class="checkout-total"></div>
         </section>
 
+        <section class="support-card auth-support">
+          <span class="eyebrow eyebrow--light">Aluno logado</span>
+          <strong id="checkout-student-name">Carregando...</strong>
+          <p id="checkout-student-meta" class="support-copy">Buscando seu cadastro...</p>
+        </section>
+
         <section>
-          <h2 class="checkout-subtitle">Seus dados</h2>
           <form id="checkout-form" class="checkout-form">
-            <label class="form-field">
-              <span>Nome</span>
-              <input type="text" id="checkout-customer-name" required />
-            </label>
-            <label class="form-field">
-              <span>Contato</span>
-              <input type="tel" id="checkout-customer-phone" required />
-            </label>
             <button class="primary-button" type="submit">Confirmar reserva</button>
           </form>
 
           <section id="checkout-success" class="support-card hidden">
             <span class="eyebrow eyebrow--light">Reserva confirmada</span>
-            <h2 class="checkout-subtitle">Guarde seu link de cancelamento</h2>
-            <p id="cancel-link-text" class="support-copy"></p>
+            <h2 class="checkout-subtitle">Mensagem enviada</h2>
+            <p class="support-copy">A reserva foi vinculada ao seu login. Se o WhatsApp nao abrir sozinho, use o botao abaixo.</p>
             <div class="support-actions">
-              <a id="cancel-link-button" class="ghost-button" href="#" target="_blank" rel="noopener">Abrir meu link</a>
-              <button id="copy-cancel-link" class="ghost-button" type="button">Copiar link</button>
               <a id="open-whatsapp-button" class="primary-button" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
             </div>
           </section>

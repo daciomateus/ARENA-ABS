@@ -13,7 +13,7 @@
         <div>
           <span class="eyebrow eyebrow--light">Area do aluno</span>
           <h1>Minha area</h1>
-          <p>Esse e o painel do aluno depois do login. Aqui ele acompanha cadastro, telefone, status e mensalidades.</p>
+          <p>Esse e o painel do aluno depois do login. Aqui ele acompanha cadastro, reservas, cancelamentos e mensalidades.</p>
         </div>
         <div class="support-actions">
           <a class="ghost-button" href="./index.html">Home</a>
@@ -36,11 +36,21 @@
         </article>
 
         <article class="access-card">
-          <span class="access-card__eyebrow">Proximas funcoes</span>
-          <strong>Area em evolucao</strong>
-          <p>Historico de aulas, horarios fixos, reservas liberadas e acompanhamento do aluno.</p>
+          <span class="access-card__eyebrow">Reservas</span>
+          <strong id="student-reservation-status">Carregando...</strong>
+          <p id="student-reservation-copy">Suas reservas aparecem logo abaixo, com cancelamento apenas da sua propria conta.</p>
         </article>
       </div>
+
+      <section class="support-card auth-support">
+        <div class="checkout-header checkout-header--compact">
+          <div>
+            <span class="eyebrow eyebrow--light">Minhas reservas</span>
+            <h2 class="checkout-subtitle">Horarios reservados</h2>
+          </div>
+        </div>
+        <div id="student-reservation-list" class="checkout-selection-list"></div>
+      </section>
 
       <section class="support-card auth-support">
         <div class="checkout-header checkout-header--compact">

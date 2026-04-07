@@ -4,6 +4,7 @@ const diasReservaPermitidos = [1, 2, 3, 4, 5, 6];
 const pendingSelectionKey = 'arena-abs-pending-selection';
 const bookingsTable = 'reservas';
 const syncIntervalMs = 10000;
+const ADMIN_EMAIL = 'mateustrgn@gmail.com';
 
 const weekRangeEl = document.querySelector('#week-range');
 const scheduleGrid = document.querySelector('#schedule-grid');
@@ -14,7 +15,6 @@ const selectedSlotPrice = document.querySelector('#selected-slot-price');
 const slotDetails = document.querySelector('#slot-details');
 const selectionList = document.querySelector('#selection-list');
 const bookingSummary = document.querySelector('#booking-summary');
-const cancelBookingButton = document.querySelector('#cancel-booking');
 const continueBookingButton = document.querySelector('#continue-booking');
 const formMessage = document.querySelector('#form-message');
 const prevWeekButton = document.querySelector('#prev-week');
@@ -32,6 +32,7 @@ let selectedCourtFilter = 'all';
 let pendingSelections = [];
 let bookingsCache = [];
 let syncTimer = null;
+let currentSession = null;
 
 function normalizeBookingRow(row) {
   return {
@@ -41,20 +42,16 @@ function normalizeBookingRow(row) {
     court: row.court,
     hour: Number(row.hour),
     price: Number(row.price),
-    datetime: row.datetime
+    datetime: row.datetime,
+    alunoId: row.aluno_id || null
   };
 }
 
-function serializeBooking(booking) {
-  return {
-    id: booking.id,
-    customer_name: booking.customerName,
-    phone: booking.phone,
-    court: booking.court,
-    hour: booking.hour,
-    price: booking.price,
-    datetime: booking.datetime
-  };
+async function loadSession() {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+  if (!error) {
+    currentSession = data.session;
+  }
 }
 
 async function fetchBookings() {
@@ -68,35 +65,6 @@ async function fetchBookings() {
   }
 
   bookingsCache = (data || []).map(normalizeBookingRow);
-}
-
-async function insertBookings(bookings) {
-  const payload = bookings.map(serializeBooking);
-  const { data, error } = await window.supabaseClient
-    .from(bookingsTable)
-    .insert(payload)
-    .select();
-
-  if (error) {
-    throw error;
-  }
-
-  bookingsCache = (data || []).map(normalizeBookingRow).concat(
-    bookingsCache.filter((existing) => !payload.some((item) => item.id === existing.id))
-  );
-}
-
-async function removeBooking(id) {
-  const { error } = await window.supabaseClient
-    .from(bookingsTable)
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    throw error;
-  }
-
-  bookingsCache = bookingsCache.filter((booking) => booking.id !== id);
 }
 
 function savePendingSelections() {
@@ -138,7 +106,7 @@ function formatDayShort(date) {
 }
 
 function formatPrice(price) {
-  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return Number(price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function getSlotPrice(hour) {
@@ -182,12 +150,6 @@ function getVisibleCourts() {
   return selectedCourtFilter === 'all' ? quadras : [selectedCourtFilter];
 }
 
-function canCancelBooking(booking) {
-  const now = new Date();
-  const bookingDate = new Date(booking.datetime);
-  return bookingDate.getTime() - now.getTime() >= 60 * 60 * 1000;
-}
-
 function isPastSlot(date, hour) {
   return buildSlotDate(date, hour).getTime() < new Date().getTime();
 }
@@ -229,16 +191,14 @@ function resetInteractionState(options = {}) {
   bookingDrawer.dataset.mode = 'empty';
   selectedSlotTitle.textContent = 'Selecione um ou mais horarios';
   selectedSlotPrice.textContent = 'R$ 0,00';
-  slotDetails.textContent = 'Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.';
+  slotDetails.textContent = 'Entre como aluno para reservar seus horarios. Depois, voce acompanha e cancela tudo pela sua area.';
   slotDetails.className = 'slot-details empty-state';
   selectionList.innerHTML = '';
   selectionList.classList.add('hidden');
   bookingSummary.classList.add('hidden');
   bookingSummary.innerHTML = '';
   continueBookingButton.classList.add('hidden');
-  cancelBookingButton?.classList.add('hidden');
   formMessage.textContent = '';
-  bookingDrawer.dataset.mode = 'empty';
   closeDrawer();
 
   if (!keepFilter) {
@@ -261,24 +221,7 @@ function renderAvailabilitySummary() {
     return;
   }
 
-  const visibleDays = getVisibleDays();
-  const visibleCourts = getVisibleCourts();
-
-  availabilitySummary.innerHTML = visibleCourts
-    .map((court) => {
-      const freeSlots = visibleDays.reduce((total, date) => {
-        const availableInDay = horarios.filter((hour) => !findBooking(date, hour, court) && !isPastSlot(date, hour)).length;
-        return total + availableInDay;
-      }, 0);
-
-      return `
-        <article class="availability-card">
-          <strong>Quadra ${court}</strong>
-          <span>${freeSlots} horarios livres</span>
-        </article>
-      `;
-    })
-    .join('');
+  availabilitySummary.innerHTML = '';
 }
 
 function getSlotVisualState({ booking, pending, pastSlot }) {
@@ -325,7 +268,7 @@ function renderDesktopSchedule() {
           const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'slot-card--selected' : '';
           const price = getSlotPrice(hour);
-          const customerLine = booking ? 'Reservado' : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
+          const customerLine = booking ? 'Reservado por conta ativa' : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Livre para reserva';
 
           return `
             <button class="slot-card slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${date.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -376,7 +319,7 @@ function renderMobileSchedule() {
           const pastSlot = isPastSlot(activeDate, hour);
           const state = getSlotVisualState({ booking, pending, pastSlot });
           const selectedClass = reservedSelected || pending ? 'mobile-slot-card--selected' : '';
-          const supportText = booking ? 'Reservado' : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
+          const supportText = booking ? 'Reservado por conta ativa' : pending ? 'Pronto para finalizar' : pastSlot ? 'Horario encerrado' : 'Toque para adicionar';
 
           return `
             <button class="mobile-slot-card mobile-slot-card--${state} ${selectedClass}" type="button" data-slot-id="${id}" data-date="${activeDate.toISOString()}" data-hour="${hour}" data-court="${court}">
@@ -431,6 +374,8 @@ function renderSelectionList() {
 
 function renderReservedState() {
   const booking = selectedReservation.booking;
+  const isOwner = currentSession?.user?.id && booking.alunoId === currentSession.user.id;
+  const isAdmin = currentSession?.user?.email === ADMIN_EMAIL;
 
   bookingDrawer.dataset.mode = 'reserved';
   selectedSlotTitle.textContent = `Quadra ${selectedReservation.court} - ${selectedReservation.hour}h`;
@@ -447,12 +392,15 @@ function renderReservedState() {
   bookingSummary.classList.remove('hidden');
   bookingSummary.innerHTML = `
     <strong>Status</strong>
-    <span>Esse horario ja esta reservado.</span>
-    <span>O cliente cancela pelo proprio link e o admin cancela pela area administrativa.</span>
+    <span>${isOwner ? 'Esse horario e seu. O cancelamento fica disponivel na sua area do aluno.' : isAdmin ? 'Voce entrou com a conta admin. O cancelamento fica no painel admin.' : 'Esse horario ja esta reservado.'}</span>
+    <span>So o aluno dono da reserva ou o admin podem cancelar.</span>
   `;
   continueBookingButton.classList.add('hidden');
-  cancelBookingButton?.classList.add('hidden');
-  formMessage.textContent = 'Para cancelar, use o link pessoal da reserva ou a area admin.';
+  formMessage.textContent = isOwner
+    ? 'Abra a sua area do aluno para cancelar esse horario.'
+    : isAdmin
+      ? 'Abra o painel admin para cancelar esse horario.'
+      : 'Esse horario pertence a outra conta.';
   openDrawer();
 }
 
@@ -462,7 +410,9 @@ function renderPendingState() {
     : `${pendingSelections.length} horarios selecionados`;
   selectedSlotPrice.textContent = formatPrice(getPendingTotal());
   slotDetails.className = 'slot-details';
-  slotDetails.textContent = 'Horarios escolhidos:';
+  slotDetails.textContent = currentSession
+    ? 'Confirme a reserva com a sua conta logada.'
+    : 'Entre como aluno para continuar.';
   renderSelectionList();
   bookingSummary.classList.remove('hidden');
   bookingSummary.innerHTML = `
@@ -472,7 +422,6 @@ function renderPendingState() {
   `;
   bookingDrawer.dataset.mode = 'pending';
   continueBookingButton.classList.remove('hidden');
-  cancelBookingButton?.classList.add('hidden');
   formMessage.textContent = '';
   openDrawer();
 }
@@ -482,15 +431,13 @@ function renderEmptyState() {
   selectedSlotTitle.textContent = 'Selecione um ou mais horarios';
   selectedSlotPrice.textContent = 'R$ 0,00';
   slotDetails.className = 'slot-details empty-state';
-  slotDetails.textContent = 'Clique em um horario disponivel para adicionar a reserva. Voce pode combinar varias horas e quadras antes de confirmar.';
+  slotDetails.textContent = 'Entre como aluno para reservar seus horarios. Depois, voce acompanha e cancela tudo pela sua area.';
   selectionList.classList.add('hidden');
   selectionList.innerHTML = '';
   bookingSummary.classList.add('hidden');
   bookingSummary.innerHTML = '';
   continueBookingButton.classList.add('hidden');
-  cancelBookingButton?.classList.add('hidden');
   formMessage.textContent = '';
-  bookingDrawer.dataset.mode = 'empty';
   closeDrawer();
 }
 
@@ -568,6 +515,7 @@ function handleSlotClick(event) {
 
 async function refreshBookingsAndRender(showError = false) {
   try {
+    await loadSession();
     await fetchBookings();
     renderAll();
   } catch (error) {
@@ -599,21 +547,24 @@ mobileDayStrip.addEventListener('click', (event) => {
   renderMobileSchedule();
 });
 
-continueBookingButton.addEventListener('click', () => {
+continueBookingButton.addEventListener('click', async () => {
   if (!pendingSelections.length) {
     formMessage.textContent = 'Selecione pelo menos um horario.';
+    return;
+  }
+
+  await loadSession();
+
+  if (!currentSession) {
+    formMessage.textContent = 'Entre como aluno para continuar.';
+    savePendingSelections();
+    window.location.href = './login.html';
     return;
   }
 
   savePendingSelections();
   window.location.href = './checkout.html';
 });
-
-if (cancelBookingButton) {
-  cancelBookingButton.addEventListener('click', () => {
-    formMessage.textContent = 'Use o link pessoal da reserva ou a area admin para cancelar.';
-  });
-}
 
 closeDrawerButton.addEventListener('click', () => {
   resetInteractionState();
@@ -658,12 +609,3 @@ async function initializeApp() {
 }
 
 initializeApp();
-
-
-
-
-
-
-
-
-

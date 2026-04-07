@@ -1,11 +1,8 @@
+const ADMIN_EMAIL = 'mateustrgn@gmail.com';
 const bookingsTable = 'reservas';
-const adminSessionKey = 'arena-abs-admin-session';
-const adminPassword = 'arenaabs123';
 
 const adminAuthCard = document.querySelector('#admin-auth-card');
 const adminPanel = document.querySelector('#admin-panel');
-const adminLoginForm = document.querySelector('#admin-login-form');
-const adminPasswordInput = document.querySelector('#admin-password');
 const adminMessage = document.querySelector('#admin-message');
 const adminReservationList = document.querySelector('#admin-reservation-list');
 const adminMonthlyList = document.querySelector('#admin-monthly-list');
@@ -16,30 +13,24 @@ const monthlyValue = document.querySelector('#monthly-value');
 const monthlyDueDate = document.querySelector('#monthly-due-date');
 const monthlyStatus = document.querySelector('#monthly-status');
 const adminLogoutButton = document.querySelector('#admin-logout');
+const adminLoginLink = document.querySelector('#admin-login-link');
 
 function formatPrice(price) {
   return Number(price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function formatDateLong(date) {
-  return date.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+  return new Date(date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
 }
 
 function formatDate(date) {
   return new Date(date).toLocaleDateString('pt-BR');
 }
 
-function isAuthenticated() {
-  return sessionStorage.getItem(adminSessionKey) === 'ok';
-}
-
-function setAuthenticated(value) {
-  if (value) {
-    sessionStorage.setItem(adminSessionKey, 'ok');
-    return;
-  }
-
-  sessionStorage.removeItem(adminSessionKey);
+async function getAdminSession() {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+  if (error) throw error;
+  return data.session;
 }
 
 async function fetchBookings() {
@@ -116,8 +107,8 @@ async function renderBookings() {
       <article class="support-card admin-card">
         <div>
           <strong>Quadra ${booking.court} - ${booking.hour}h</strong>
-          <p class="support-copy">${formatDateLong(new Date(booking.datetime))}</p>
-          <p class="support-copy">Cliente: ${booking.customer_name}</p>
+          <p class="support-copy">${formatDateLong(booking.datetime)}</p>
+          <p class="support-copy">Aluno: ${booking.customer_name}</p>
           <p class="support-copy">Contato: ${booking.phone}</p>
           <p class="support-copy">Valor: ${formatPrice(booking.price)}</p>
         </div>
@@ -129,7 +120,6 @@ async function renderBookings() {
 
 async function renderStudentsSelect() {
   const students = await fetchStudents();
-
   monthlyStudent.innerHTML = students.length
     ? students.map((student) => `<option value="${student.id}">${student.nome || student.email} | ${student.telefone || 'sem telefone'}</option>`).join('')
     : '<option value="">Nenhum aluno cadastrado</option>';
@@ -164,39 +154,31 @@ async function renderMonthlyPayments() {
 }
 
 async function renderAdminData() {
-  await Promise.all([
-    renderBookings(),
-    renderStudentsSelect(),
-    renderMonthlyPayments()
-  ]);
+  await Promise.all([renderBookings(), renderStudentsSelect(), renderMonthlyPayments()]);
 }
 
-function updateView() {
-  const authenticated = isAuthenticated();
-  adminAuthCard.classList.toggle('hidden', authenticated);
-  adminPanel.classList.toggle('hidden', !authenticated);
+async function updateView() {
+  try {
+    const session = await getAdminSession();
+    const isAdmin = session?.user?.email === ADMIN_EMAIL;
 
-  if (authenticated) {
-    renderAdminData().catch((error) => {
-      console.error('Erro ao carregar dados do admin:', error);
-      adminMessage.textContent = 'Nao foi possivel carregar o painel completo.';
-    });
+    adminAuthCard.classList.toggle('hidden', isAdmin);
+    adminPanel.classList.toggle('hidden', !isAdmin);
+
+    if (isAdmin) {
+      await renderAdminData();
+      adminMessage.textContent = '';
+      return;
+    }
+
+    adminMessage.textContent = session
+      ? 'Essa conta nao tem permissao de admin. Entre com mateustrgn@gmail.com.'
+      : 'Entre com o e-mail admin para acessar este painel.';
+  } catch (error) {
+    console.error('Erro ao carregar sessao do admin:', error);
+    adminMessage.textContent = 'Nao foi possivel carregar o painel.';
   }
 }
-
-adminLoginForm?.addEventListener('submit', (event) => {
-  event.preventDefault();
-  adminMessage.textContent = '';
-
-  if (adminPasswordInput.value !== adminPassword) {
-    adminMessage.textContent = 'Senha incorreta.';
-    return;
-  }
-
-  setAuthenticated(true);
-  adminPasswordInput.value = '';
-  updateView();
-});
 
 adminReservationList?.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-booking-id]');
@@ -205,7 +187,7 @@ adminReservationList?.addEventListener('click', async (event) => {
   try {
     await deleteBooking(button.dataset.bookingId);
     adminMessage.textContent = 'Horario cancelado com sucesso.';
-    renderBookings();
+    await renderBookings();
   } catch (error) {
     console.error('Erro ao cancelar reserva no admin:', error);
     adminMessage.textContent = 'Nao foi possivel cancelar agora.';
@@ -248,10 +230,18 @@ adminMonthlyList?.addEventListener('click', async (event) => {
   }
 });
 
-adminLogoutButton?.addEventListener('click', () => {
-  setAuthenticated(false);
-  adminMessage.textContent = '';
-  updateView();
+adminLogoutButton?.addEventListener('click', async () => {
+  const { error } = await window.supabaseClient.auth.signOut();
+  if (error) {
+    adminMessage.textContent = 'Nao foi possivel sair agora.';
+    return;
+  }
+
+  window.location.href = './login.html';
+});
+
+adminLoginLink?.addEventListener('click', () => {
+  window.location.href = './login.html';
 });
 
 updateView();
