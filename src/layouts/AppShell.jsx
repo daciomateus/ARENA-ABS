@@ -85,7 +85,7 @@ export function AppShell({ children }) {
             ))}
           </nav>
 
-          <div className="relative z-30 flex shrink-0 items-center justify-between gap-3 lg:justify-end">
+          <div key={user?.id || 'guest'} className="relative z-30 flex shrink-0 items-center justify-between gap-3 lg:justify-end">
             {isAuthenticated ? (
               <>
                 <div className="relative z-30 flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm">

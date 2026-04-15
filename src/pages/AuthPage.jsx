@@ -51,7 +51,6 @@ export function AuthPage() {
     setFeedback('')
     try {
       await signIn(values)
-      navigate(redirectTarget, { replace: true })
     } catch (loginError) {
       setError(loginError.message || 'Nao foi possivel entrar agora.')
     } finally {
@@ -66,7 +65,6 @@ export function AuthPage() {
     try {
       const data = await signUp(values)
       if (data?.session) {
-        navigate(redirectTarget, { replace: true })
         return
       }
       setFeedback('Conta criada com sucesso. Se o Supabase exigir confirmacao por e-mail, confirme antes de entrar.')
