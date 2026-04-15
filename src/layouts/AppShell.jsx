@@ -64,9 +64,9 @@ export function AppShell({ children }) {
 
   return (
     <div className="app-shell">
-      <header className="glass-panel mb-4 px-4 py-3 sm:px-5">
+      <header className="glass-panel relative z-20 mb-4 px-4 py-3 sm:px-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <Link to="/" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <img src="/arena-abs-logo.jpeg" alt="Logo Arena ABS" className="h-11 w-11 object-cover sm:h-12 sm:w-12" />
             </Link>
@@ -76,7 +76,7 @@ export function AppShell({ children }) {
             </div>
           </div>
 
-          <nav className="flex gap-2 overflow-x-auto pb-1 lg:justify-center">
+          <nav className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 lg:justify-center">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -88,7 +88,7 @@ export function AppShell({ children }) {
             ))}
           </nav>
 
-          <div className="flex items-center justify-between gap-3 lg:justify-end">
+          <div className="flex shrink-0 items-center justify-between gap-3 lg:justify-end">
             {showAuthenticatedState ? (
               <>
                 <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm">
