@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+﻿import { useMemo } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { CalendarDays, LogOut, ShieldCheck, UserRound } from 'lucide-react'
 import { APP_NAME } from '../utils/constants'
@@ -26,7 +26,6 @@ export function AppShell({ children }) {
   const { isAuthenticated, isAdmin, signOut, profile, user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const navItems = useMemo(() => {
     const items = [
@@ -47,18 +46,16 @@ export function AppShell({ children }) {
   }, [isAuthenticated, isAdmin])
 
   const showQuickReserve = !isAuthenticated && location.pathname !== '/quadras'
-  const showAuthenticatedState = isAuthenticated
   const displayName = profile?.nome || user?.user_metadata?.nome || user?.email?.split('@')[0] || ''
   const profileInitials = getInitials(displayName)
   const shortName = getShortName(displayName)
 
   async function handleSignOut() {
     try {
-      setIsSigningOut(true)
       await signOut()
       navigate('/', { replace: true })
-    } catch {
-      setIsSigningOut(false)
+    } catch (error) {
+      console.error('Nao foi possivel encerrar a sessao.', error)
     }
   }
 
@@ -89,7 +86,7 @@ export function AppShell({ children }) {
           </nav>
 
           <div className="relative z-30 flex shrink-0 items-center justify-between gap-3 lg:justify-end">
-            {showAuthenticatedState ? (
+            {isAuthenticated ? (
               <>
                 <div className="relative z-30 flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-xs font-black uppercase tracking-[0.16em] text-brand-700">
@@ -101,7 +98,7 @@ export function AppShell({ children }) {
                   </div>
                   {isAdmin ? <ShieldCheck size={16} className="shrink-0 text-brand-500" /> : <UserRound size={16} className="shrink-0 text-brand-500" />}
                 </div>
-                <button className="secondary-btn relative z-30 px-4 py-2.5" type="button" onClick={handleSignOut} disabled={isSigningOut}>
+                <button className="secondary-btn relative z-30 px-4 py-2.5" type="button" onClick={handleSignOut}>
                   <LogOut size={16} className="mr-2" />
                   Sair
                 </button>
@@ -132,4 +129,3 @@ export function AppShell({ children }) {
     </div>
   )
 }
-
