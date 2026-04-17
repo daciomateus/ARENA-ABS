@@ -1,7 +1,14 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { appSiteUrl } from '../lib/env'
 import { supabase } from '../lib/supabaseClient'
 import { ensureProfileExists, getProfileById } from '../services/profileService'
 import { AuthContext } from './auth-context'
+
+function getEmailRedirectUrl() {
+  const baseUrl = appSiteUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+  if (!baseUrl) return undefined
+  return `${baseUrl.replace(/\/$/, '')}/quadras`
+}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
@@ -73,6 +80,7 @@ export function AuthProvider({ children }) {
       email,
       password,
       options: {
+        emailRedirectTo: getEmailRedirectUrl(),
         data: {
           nome,
           telefone,

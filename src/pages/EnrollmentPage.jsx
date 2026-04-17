@@ -2,12 +2,12 @@
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { ArrowRight, CreditCard, QrCode, UserRound, Wallet } from 'lucide-react'
+import { ArrowRight, CreditCard, LoaderCircle, MessageCircleMore, QrCode, UserRound, Wallet } from 'lucide-react'
 import { EmptyState } from '../components/EmptyState'
 import { PageHeader } from '../components/PageHeader'
 import { useAuth } from '../hooks/useAuth'
 import { createEnrollment, listEnrollments } from '../services/enrollmentService'
-import { ENROLLMENT_OPTIONS } from '../utils/constants'
+import { ENROLLMENT_OPTIONS, WHATSAPP_ARENA_NUMBER } from '../utils/constants'
 import { formatCurrency } from '../utils/date'
 
 const enrollmentSchema = z.object({
@@ -43,6 +43,30 @@ const paymentOptions = [
 function buildEnrollmentNotes(observacoes, paymentLabel) {
   const paymentLine = `Forma de pagamento: ${paymentLabel}`
   return observacoes ? `${paymentLine}\n${observacoes}` : paymentLine
+}
+
+function normalizePhone(phone) {
+  return String(phone || '').replace(/\D/g, '')
+}
+
+function buildEnrollmentWhatsappUrl({ nome, email, telefone, plan, paymentLabel, observacoes }) {
+  const lines = [
+    'Ola, Arena ABS! Acabei de concluir minha matricula pelo site.',
+    '',
+    `Aluno: ${nome}`,
+    `Telefone: ${telefone || 'Nao informado'}`,
+    `E-mail: ${email}`,
+    '',
+    `Plano escolhido: ${plan ? `${plan.modalidade} - ${plan.turma}` : 'Nao informado'}`,
+    `Valor: ${plan ? formatCurrency(plan.valor) : 'Nao informado'}`,
+    `Forma de pagamento: ${paymentLabel}`,
+  ]
+
+  if (observacoes) {
+    lines.push('', `Observacoes: ${observacoes}`)
+  }
+
+  return `https://wa.me/${WHATSAPP_ARENA_NUMBER}?text=${encodeURIComponent(lines.join('\n'))}`
 }
 
 export function EnrollmentPage() {
@@ -115,18 +139,29 @@ export function EnrollmentPage() {
     setFeedback('')
     try {
       const paymentLabel = paymentOptions.find((option) => option.id === values.forma_pagamento)?.label || values.forma_pagamento
+      const normalizedPhone = normalizePhone(values.telefone)
 
       await createEnrollment({
         user_id: user.id,
         nome: values.nome,
         email: values.email,
-        telefone: values.telefone,
+        telefone: normalizedPhone || values.telefone,
         modalidade: values.modalidade,
         observacoes: buildEnrollmentNotes(values.observacoes, paymentLabel),
       })
 
-      setFeedback('Matricula enviada com sucesso. Agora e so seguir com o pagamento.')
+      const whatsappUrl = buildEnrollmentWhatsappUrl({
+        nome: values.nome,
+        email: values.email,
+        telefone: normalizedPhone || values.telefone,
+        plan: selectedPlan,
+        paymentLabel,
+        observacoes: values.observacoes?.trim(),
+      })
+
+      setFeedback('Matricula enviada com sucesso. Estamos abrindo o WhatsApp para voce concluir o atendimento.')
       await loadEnrollments()
+      window.open(whatsappUrl, '_blank')
     } catch (submissionError) {
       setError(submissionError.message || 'Nao foi possivel enviar a matricula agora.')
     } finally {
@@ -241,11 +276,12 @@ export function EnrollmentPage() {
 
             <div>
               <label className="field-label" htmlFor="observacoes">Observacoes</label>
-              <textarea id="observacoes" className="input-shell min-h-28 resize-y" {...form.register('observacoes')} />
+              <textarea id="observacoes" className="input-shell min-h-28 resize-none" {...form.register('observacoes')} />
             </div>
 
             <button className="primary-btn w-full" type="submit" disabled={saving}>
-              {saving ? 'Enviando...' : 'Enviar matricula e seguir para pagamento'}
+              {saving ? <LoaderCircle size={16} className="mr-2 animate-spin" /> : <MessageCircleMore size={16} className="mr-2" />}
+              {saving ? 'Enviando matricula...' : 'Enviar matricula e abrir WhatsApp'}
             </button>
           </form>
         ) : (
@@ -261,7 +297,7 @@ export function EnrollmentPage() {
       <aside className="section-card space-y-5">
         <div className="rounded-3xl border border-slate-200 bg-sand-50 p-4 text-sm text-slate-600">
           <strong className="block text-ink-950">Pagamento</strong>
-          <p className="mt-2">Depois de enviar a matricula, a proxima etapa e concluir o pagamento da forma escolhida. Podemos ligar isso a Pix ou checkout em seguida.</p>
+          <p className="mt-2">Depois de enviar a matricula, abrimos o WhatsApp da arena com o plano e a forma de pagamento ja preenchidos para agilizar o atendimento.</p>
         </div>
 
         <div>

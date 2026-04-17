@@ -23,6 +23,7 @@ Copie `.env.example` para `.env` e preencha:
 ```env
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
+VITE_SITE_URL=
 ```
 
 ## Rodando localmente
@@ -54,6 +55,7 @@ npm.cmd run lint
 5. Adicione as variaveis:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_SITE_URL`
 6. Publique o projeto.
 7. No Supabase, acesse `Authentication > URL Configuration` e adicione:
    - a URL publica da Vercel em `Site URL`
