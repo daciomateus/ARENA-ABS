@@ -58,11 +58,28 @@ export function MyReservationsPage() {
 
   return (
     <section className="section-card space-y-6">
-      <PageHeader eyebrow="Minhas reservas" title="Suas reservas ativas e historico" />
+      <PageHeader eyebrow="Minhas reservas" title="Suas reservas ativas e historico" description="Acompanhe sua conta, veja os horarios confirmados e cancele com um toque quando precisar." />
 
       {loading ? <LoadingState title="Carregando reservas" /> : null}
       {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
       {feedback ? <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{feedback}</p> : null}
+
+      {!loading ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <article className="rounded-2xl border border-slate-200 bg-sand-50 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Reservas</p>
+            <strong className="mt-2 block text-2xl font-black text-ink-950">{reservations.length}</strong>
+          </article>
+          <article className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">Ativas</p>
+            <strong className="mt-2 block text-2xl font-black text-emerald-700">{reservations.filter((reservation) => reservation.status !== 'cancelada').length}</strong>
+          </article>
+          <article className="rounded-2xl border border-brand-100 bg-brand-50/70 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-brand-700">Mensalidades</p>
+            <strong className="mt-2 block text-2xl font-black text-brand-700">{financeiro.length}</strong>
+          </article>
+        </div>
+      ) : null}
 
       {!loading && financeiro.length ? (
         <div className="space-y-3">

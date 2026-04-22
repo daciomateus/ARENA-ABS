@@ -184,6 +184,33 @@ function AlertStudentCard({ student, onEdit, onPay }) {
   )
 }
 
+function StudentMobileCard({ student, selectedStudentId, isDrawerOpen, onEdit, onPay }) {
+  return (
+    <article className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={`truncate text-base font-bold ${selectedStudentId === student.userId && isDrawerOpen ? 'text-brand-700' : 'text-ink-950'}`}>{student.nome}</p>
+          <p className="mt-1 truncate text-sm text-slate-500">{student.email || 'Sem e-mail'}</p>
+        </div>
+        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStudentStatusPill(student.status.key)}`}>{student.status.label}</span>
+      </div>
+
+      <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+        <p><strong className="text-ink-950">Telefone:</strong> {student.telefone || 'Sem telefone'}</p>
+        <p><strong className="text-ink-950">Modalidade:</strong> {student.modalidade || '-'}</p>
+        <p><strong className="text-ink-950">Valor:</strong> {student.valor ? formatCurrency(student.valor) : '-'}</p>
+        <p><strong className="text-ink-950">Ultimo pagamento:</strong> {formatPaymentDate(student.ultimoPagamento)}</p>
+        <p><strong className="text-ink-950">Proximo vencimento:</strong> {formatPaymentDate(student.proximoVencimento)}</p>
+        <p><strong className="text-ink-950">Status:</strong> {student.detail}</p>
+      </div>
+
+      <div className="mt-4">
+        <QuickActions student={student} onEdit={onEdit} onPay={onPay} />
+      </div>
+    </article>
+  )
+}
+
 export function AdminDashboardPage() {
   const navigate = useNavigate()
   const [reservations, setReservations] = useState([])
@@ -546,22 +573,22 @@ export function AdminDashboardPage() {
   }
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white px-6 py-5 shadow-sm">
+      <section className="rounded-[28px] border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6 sm:py-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">Admin Arena ABS</p>
-            <h1 className="mt-2 text-3xl font-black text-ink-950">Painel operacional</h1>
+            <h1 className="mt-2 text-[1.9rem] font-black text-ink-950 sm:text-3xl">Painel operacional</h1>
             <p className="mt-1 text-sm text-slate-500">{currentDateLabel}. Controle alunos, cobrancas e reservas com uma visao mais comercial.</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className="secondary-btn !px-4 !py-2.5" onClick={() => navigate('/matricula')}>
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <button type="button" className="secondary-btn !w-full !justify-center !px-4 !py-2.5 sm:!w-auto" onClick={() => navigate('/matricula')}>
               Novo aluno
             </button>
-            <button type="button" className="secondary-btn !px-4 !py-2.5" onClick={() => navigate('/quadras')}>
+            <button type="button" className="secondary-btn !w-full !justify-center !px-4 !py-2.5 sm:!w-auto" onClick={() => navigate('/quadras')}>
               Nova reserva
             </button>
-            <button type="button" className="primary-btn !px-4 !py-2.5" onClick={() => openPaymentDrawer()}>
+            <button type="button" className="primary-btn !w-full !justify-center !px-4 !py-2.5 sm:!w-auto" onClick={() => openPaymentDrawer()}>
               Registrar pagamento
             </button>
           </div>
@@ -646,7 +673,7 @@ export function AdminDashboardPage() {
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">Alunos</p>
                   <h2 className="mt-2 text-2xl font-black text-ink-950">Controle de alunos matriculados</h2>
-                  <p className="mt-1 text-sm text-slate-500">Leitura horizontal, acoes diretas e densidade de informacao para operacao diaria.</p>
+                  <p className="mt-1 text-sm text-slate-500">Busca rapida, leitura compacta no celular e acoes diretas para o atendimento diario.</p>
                 </div>
 
                 <div className="w-full xl:max-w-[680px]">
@@ -685,7 +712,24 @@ export function AdminDashboardPage() {
 
             {!loading && enrolledStudents.length > 0 ? (
               <>
-                <div className="overflow-x-auto">
+                <div className="space-y-3 px-4 py-4 sm:hidden">
+                  {paginatedStudents.length === 0 ? (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">Nenhum aluno encontrado com esse filtro.</div>
+                  ) : (
+                    paginatedStudents.map((student) => (
+                      <StudentMobileCard
+                        key={student.userId}
+                        student={student}
+                        selectedStudentId={selectedStudentId}
+                        isDrawerOpen={isDrawerOpen}
+                        onEdit={openStudentEditor}
+                        onPay={openPaymentDrawer}
+                      />
+                    ))
+                  )}
+                </div>
+
+                <div className="hidden overflow-x-auto sm:block">
                   <div className="min-w-[1420px]">
                     <div className="grid grid-cols-[minmax(230px,1.45fr)_130px_110px_110px_120px_120px_130px_300px] gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
                       <span>Nome</span>
@@ -726,7 +770,7 @@ export function AdminDashboardPage() {
                 </div>
 
                 {totalStudentPages > 1 ? (
-                  <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4 text-sm text-slate-600">
+                  <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                     <span>{((studentPage - 1) * STUDENTS_PER_PAGE) + 1}-{Math.min(studentPage * STUDENTS_PER_PAGE, filteredEnrolledStudents.length)} de {filteredEnrolledStudents.length}</span>
                     <div className="flex items-center gap-2">
                       <button type="button" onClick={() => setStudentPage((current) => Math.max(1, current - 1))} disabled={studentPage === 1} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Pagina anterior">

@@ -40,6 +40,7 @@
 
   body {
     @apply m-0 min-h-screen bg-sand-100 text-ink-950;
+    overflow-x: hidden;
     background-image:
       radial-gradient(circle at top left, rgba(231, 108, 23, 0.08), transparent 34%),
       radial-gradient(circle at top right, rgba(20, 33, 61, 0.08), transparent 28%),
@@ -60,23 +61,23 @@
 
 @layer components {
   .app-shell {
-    @apply mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-10 pt-4 sm:px-6 lg:px-8;
+    @apply mx-auto flex min-h-screen w-full max-w-7xl flex-col px-3 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-4 lg:px-8;
   }
 
   .glass-panel {
-    @apply rounded-3xl border border-white/60 bg-white/80 shadow-[0_18px_50px_rgba(20,33,61,0.08)] backdrop-blur;
+    @apply rounded-2xl border border-white/60 bg-white/80 shadow-[0_18px_50px_rgba(20,33,61,0.08)] backdrop-blur sm:rounded-3xl;
   }
 
   .section-card {
-    @apply rounded-3xl border border-white/60 bg-white/80 p-5 shadow-[0_18px_50px_rgba(20,33,61,0.08)] backdrop-blur sm:p-6;
+    @apply rounded-2xl border border-white/60 bg-white/80 p-4 shadow-[0_18px_50px_rgba(20,33,61,0.08)] backdrop-blur sm:rounded-3xl sm:p-6;
   }
 
   .page-title {
-    @apply text-3xl font-black tracking-tight text-ink-950 sm:text-4xl;
+    @apply text-[1.75rem] font-black tracking-tight text-ink-950 sm:text-4xl;
   }
 
   .section-title {
-    @apply text-2xl font-bold tracking-tight text-ink-950;
+    @apply text-xl font-bold tracking-tight text-ink-950 sm:text-2xl;
   }
 
   .section-copy {
@@ -84,19 +85,19 @@
   }
 
   .brand-badge {
-    @apply inline-flex items-center rounded-full bg-brand-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.24em] text-brand-700;
+    @apply inline-flex items-center rounded-full bg-brand-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-700 sm:px-3 sm:text-xs sm:tracking-[0.24em];
   }
 
   .primary-btn {
-    @apply inline-flex items-center justify-center rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3;
   }
 
   .secondary-btn {
-    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3;
   }
 
   .nav-link {
-    @apply rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-ink-950;
+    @apply rounded-full px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-white hover:text-ink-950 sm:px-4 sm:text-sm;
   }
 
   .nav-link-active {
@@ -104,7 +105,7 @@
   }
 
   .input-shell {
-    @apply mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-brand-300 focus:ring-4 focus:ring-brand-100;
+    @apply mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-brand-300 focus:ring-4 focus:ring-brand-100 sm:px-4 sm:py-3;
   }
 
   .field-label {

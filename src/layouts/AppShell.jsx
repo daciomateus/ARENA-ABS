@@ -61,19 +61,19 @@ export function AppShell({ children }) {
 
   return (
     <div className="app-shell">
-      <header className="glass-panel relative z-20 mb-4 px-4 py-3 sm:px-5">
+      <header className="glass-panel relative z-20 mb-4 px-3 py-3 sm:px-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative z-10 flex shrink-0 items-center gap-3">
             <Link to="/" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <img src="/arena-abs-logo.jpeg" alt="Logo Arena ABS" className="h-11 w-11 object-cover sm:h-12 sm:w-12" />
+              <img src="/arena-abs-logo.jpeg" alt="Logo Arena ABS" className="h-10 w-10 object-cover sm:h-12 sm:w-12" />
             </Link>
             <div>
-              <p className="text-sm font-bold text-ink-950">{APP_NAME}</p>
-              <p className="text-xs text-slate-500">Beach sports, quadras e matriculas</p>
+              <p className="text-sm font-bold text-ink-950 sm:text-base">{APP_NAME}</p>
+              <p className="text-[11px] text-slate-500 sm:text-xs">Beach sports, quadras e matriculas</p>
             </div>
           </div>
 
-          <nav className="relative z-0 flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 lg:justify-center">
+          <nav className="relative z-0 flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-1 lg:justify-center">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -85,32 +85,32 @@ export function AppShell({ children }) {
             ))}
           </nav>
 
-          <div key={user?.id || 'guest'} className="relative z-30 flex shrink-0 items-center justify-between gap-3 lg:justify-end">
+          <div key={user?.id || 'guest'} className="relative z-30 flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between lg:justify-end">
             {isAuthenticated ? (
               <>
-                <div className="relative z-30 flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-xs font-black uppercase tracking-[0.16em] text-brand-700">
+                <div className="relative z-30 flex min-w-0 w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm sm:w-auto">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-[11px] font-black uppercase tracking-[0.16em] text-brand-700 sm:h-9 sm:w-9 sm:text-xs">
                     {profileInitials}
                   </div>
                   <div className="min-w-0">
-                    <strong className="block truncate text-ink-950">{shortName}</strong>
+                    <strong className="block truncate text-sm text-ink-950">{shortName}</strong>
                     <span className="truncate text-xs">{isAdmin ? 'Conta admin' : 'Conta ativa'}</span>
                   </div>
                   {isAdmin ? <ShieldCheck size={16} className="shrink-0 text-brand-500" /> : <UserRound size={16} className="shrink-0 text-brand-500" />}
                 </div>
-                <button className="secondary-btn relative z-30 px-4 py-2.5" type="button" onClick={handleSignOut}>
+                <button className="secondary-btn relative z-30 w-full justify-center px-4 py-2.5 sm:w-auto" type="button" onClick={handleSignOut}>
                   <LogOut size={16} className="mr-2" />
                   Sair
                 </button>
               </>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login" className="secondary-btn px-4 py-2.5">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                <Link to="/login" className="secondary-btn w-full px-4 py-2.5 sm:w-auto">
                   <UserRound size={16} className="mr-2" />
                   Entrar
                 </Link>
                 {showQuickReserve ? (
-                  <Link to="/quadras" className="primary-btn px-4 py-2.5">
+                  <Link to="/quadras" className="primary-btn w-full px-4 py-2.5 sm:w-auto">
                     <CalendarDays size={16} className="mr-2" />
                     Reservar
                   </Link>

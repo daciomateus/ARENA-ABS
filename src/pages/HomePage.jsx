@@ -24,18 +24,18 @@ export function HomePage() {
         <div className="grid gap-4 lg:grid-cols-[1.7fr_0.95fr] lg:items-start">
           <div className="space-y-4 sm:space-y-5">
             <div className="flex items-center gap-3">
-              <img src="/arena-abs-logo.jpeg" alt="Logo Arena ABS" className="h-14 w-14 rounded-2xl border border-white/15 bg-white/10 object-cover shadow-lg shadow-black/10" />
+              <img src="/arena-abs-logo.jpeg" alt="Logo Arena ABS" className="h-12 w-12 rounded-2xl border border-white/15 bg-white/10 object-cover shadow-lg shadow-black/10 sm:h-14 sm:w-14" />
               <div>
                 <span className="brand-badge bg-white/14 text-white">Arena ABS</span>
-                <p className="mt-2 text-sm text-white/72">Beach sports e reservas esportivas</p>
+                <p className="mt-2 text-xs text-white/72 sm:text-sm">Beach sports e reservas esportivas</p>
               </div>
             </div>
 
             <div className="max-w-3xl space-y-3">
-              <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
+              <h1 className="text-[1.9rem] font-black leading-tight tracking-tight text-white sm:text-5xl">
                 Uma area mais rapida para reservar quadras e organizar matriculas.
               </h1>
-              <p className="max-w-2xl text-sm leading-7 text-white/78 sm:text-base">
+              <p className="max-w-2xl text-sm leading-6 text-white/78 sm:text-base sm:leading-7">
                 Escolha horarios entre 17h e 21h, acompanhe sua conta e envie sua matricula para as modalidades da arena em poucos toques.
               </p>
             </div>
@@ -55,7 +55,7 @@ export function HomePage() {
           <div className="space-y-3">
             <article className="rounded-[28px] border border-white/16 bg-white/10 p-4 backdrop-blur">
               <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-brand-200">Acao principal</span>
-              <h2 className="mt-3 text-2xl font-bold text-white">Alugar quadra</h2>
+              <h2 className="mt-3 text-xl font-bold text-white sm:text-2xl">Alugar quadra</h2>
               <p className="mt-2 text-sm leading-6 text-white/72">Abra a agenda, toque em um horario livre e confirme a reserva.</p>
               <Link to="/quadras" className="mt-4 primary-btn w-full sm:w-auto">
                 <CalendarDays size={16} className="mr-2" />
@@ -89,7 +89,7 @@ export function HomePage() {
               ) : (
                 <article className="rounded-[28px] border border-white/16 bg-white/10 p-4 backdrop-blur">
                   <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-brand-200">Conta</span>
-                  <h2 className="mt-3 text-xl font-bold text-white">Entre para liberar sua area.</h2>
+                  <h2 className="mt-3 text-lg font-bold text-white sm:text-xl">Entre para liberar sua area.</h2>
                   <Link to="/login" className="mt-4 secondary-btn w-full border-white/20 bg-white/10 text-white hover:border-white/40 hover:text-white sm:w-auto">
                     <LogIn size={16} className="mr-2" />
                     Entrar agora
@@ -106,7 +106,7 @@ export function HomePage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="brand-badge">Servicos</span>
-              <h2 className="mt-4 text-2xl font-bold tracking-tight text-ink-950">O essencial em poucos caminhos.</h2>
+              <h2 className="mt-4 text-xl font-bold tracking-tight text-ink-950 sm:text-2xl">O essencial em poucos caminhos.</h2>
               <p className="mt-2 max-w-2xl text-sm text-slate-500 sm:text-base">
                 A agenda e a area do aluno ficam lado a lado, com acesso rapido ao que voce mais usa.
               </p>

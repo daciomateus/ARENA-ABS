@@ -16,6 +16,13 @@ function getSlotPrice(hour) {
   return hour === '17:00' ? 60 : 70
 }
 
+function getCompactHourRange(hour) {
+  const [rawHour] = String(hour).split(':')
+  const startHour = Number(rawHour)
+  if (Number.isNaN(startHour)) return hour
+  return `${String(startHour).padStart(2, '0')}h-${String(startHour + 1).padStart(2, '0')}h`
+}
+
 function getSlotId(slot) {
   return `${slot.data_reserva}-${slot.quadra}-${slot.horario}`
 }
@@ -163,6 +170,10 @@ export function CourtRentalPage() {
             description="Escolha o dia e toque nos horarios disponiveis. Voce pode reservar mais de um antes de confirmar."
           />
 
+          <div className="rounded-2xl border border-brand-100 bg-brand-50/80 px-4 py-3 text-sm text-brand-800">
+            <strong className="text-ink-950">Como funciona:</strong> escolha o dia, toque nos horarios livres e finalize tudo no botao fixo no rodape.
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
             <div className="space-y-4">
               <div className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm">
@@ -258,7 +269,7 @@ export function CourtRentalPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {COURTS.map((court) => (
+                {(selectedCourt ? [selectedCourt, ...COURTS.filter((court) => court !== selectedCourt)] : COURTS).map((court) => (
                   <article key={court} className="rounded-3xl border border-slate-200 bg-white/92 p-4 shadow-sm backdrop-blur-sm">
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="text-lg font-bold text-ink-950">{court}</h3>
@@ -268,7 +279,7 @@ export function CourtRentalPage() {
                     </div>
                     <p className="mt-1 text-sm text-slate-500">Toque em um ou mais horarios livres para selecionar.</p>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-1">
                       {RESERVATION_HOURS.map((hour) => {
                         const available = isReservationSlotAvailable(reservations, court, selectedDate, hour)
                         const selected = isSlotSelected(court, hour)
@@ -278,7 +289,7 @@ export function CourtRentalPage() {
                             type="button"
                             onClick={() => toggleSlot(court, hour, available)}
                             disabled={!available}
-                            className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                            className={`w-full rounded-2xl border px-3 py-3 text-left text-sm transition ${
                               selected
                                 ? 'border-brand-300 bg-brand-50 text-brand-800 shadow-sm'
                                 : available
@@ -287,12 +298,14 @@ export function CourtRentalPage() {
                             }`}
                           >
                             <div className="space-y-2">
-                              <strong className="block text-base leading-none">{hour}</strong>
-                              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-current/15 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]">
-                                {selected ? <CheckCircle2 size={12} /> : null}
-                                <span className="whitespace-nowrap">{selected ? 'Selecionado' : available ? 'Disponivel' : 'Reservado'}</span>
+                              <strong className="block text-sm font-bold leading-none sm:text-base">{getCompactHourRange(hour)}</strong>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-semibold opacity-85">{formatCurrency(getSlotPrice(hour))}</span>
+                                <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-current/15 bg-white/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em]">
+                                  {selected ? <CheckCircle2 size={11} /> : null}
+                                  <span className="whitespace-nowrap">{selected ? 'Selecionado' : available ? 'Livre' : 'Lotado'}</span>
+                                </div>
                               </div>
-                              <span className="block text-xs opacity-85">{formatCurrency(getSlotPrice(hour))}</span>
                             </div>
                           </button>
                         )
@@ -312,7 +325,7 @@ export function CourtRentalPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Finalizar reserva</p>
-                <strong className="mt-1 block text-sm text-ink-950">{selectedSlots.length} horario(s)</strong>
+                <strong className="mt-1 block text-sm text-ink-950">{selectedSlots.length} horario(s) selecionado(s)</strong>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-ink-950">{formatCurrency(totalValue)}</p>
