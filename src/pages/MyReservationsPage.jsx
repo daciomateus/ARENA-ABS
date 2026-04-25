@@ -31,7 +31,7 @@ export function MyReservationsPage() {
       setFinanceiro(financeiroData)
       setError('')
     } catch (loadError) {
-      setError(loadError.message || 'Nao foi possivel carregar suas reservas.')
+      setError(loadError.message || 'Não foi possível carregar suas reservas.')
     } finally {
       setLoading(false)
     }
@@ -50,7 +50,7 @@ export function MyReservationsPage() {
       setFeedback('Reserva cancelada com sucesso.')
       await loadReservations()
     } catch (cancelError) {
-      setError(cancelError.message || 'Nao foi possivel cancelar esta reserva.')
+      setError(cancelError.message || 'Não foi possível cancelar esta reserva.')
     } finally {
       setCancellingId('')
     }
@@ -58,7 +58,7 @@ export function MyReservationsPage() {
 
   return (
     <section className="section-card space-y-6">
-      <PageHeader eyebrow="Minhas reservas" title="Suas reservas ativas e historico" description="Acompanhe sua conta, veja os horarios confirmados e cancele com um toque quando precisar." />
+      <PageHeader eyebrow="Minhas reservas" title="Suas reservas ativas e histórico" description="Acompanhe sua conta, veja os horários confirmados e cancele com um toque quando precisar." />
 
       {loading ? <LoadingState title="Carregando reservas" /> : null}
       {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
@@ -96,14 +96,14 @@ export function MyReservationsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-lg font-bold text-ink-950">{registro.modalidade || 'Mensalidade'}</h3>
-                      <p className="mt-1 text-sm text-slate-500">Proximo vencimento: {registro.proximo_vencimento ? formatShortDate(new Date(`${registro.proximo_vencimento}T00:00:00`)) : 'Nao definido'}</p>
+                      <p className="mt-1 text-sm text-slate-500">Próximo vencimento: {registro.proximo_vencimento ? formatShortDate(new Date(`${registro.proximo_vencimento}T00:00:00`)) : 'Não definido'}</p>
                     </div>
                     <StatusBadge status={monthlyStatus.key} label={monthlyStatus.label} />
                   </div>
 
                   <div className="space-y-1 text-sm text-slate-600">
                     <p><strong className="text-ink-950">Valor:</strong> {formatCurrency(registro.valor)}</p>
-                    <p><strong className="text-ink-950">Ultimo pagamento:</strong> {registro.data_ultimo_pagamento ? formatShortDate(new Date(`${registro.data_ultimo_pagamento}T00:00:00`)) : 'Nao informado'}</p>
+                    <p><strong className="text-ink-950">Último pagamento:</strong> {registro.data_ultimo_pagamento ? formatShortDate(new Date(`${registro.data_ultimo_pagamento}T00:00:00`)) : 'Não informado'}</p>
                     <p>{monthlyStatus.detail}</p>
                   </div>
                 </article>
@@ -114,7 +114,7 @@ export function MyReservationsPage() {
       ) : null}
 
       {!loading && reservations.length === 0 ? (
-        <EmptyState title="Nenhuma reserva encontrada" description="Assim que voce reservar uma quadra, ela aparecera aqui com status e dados do horario." />
+        <EmptyState title="Nenhuma reserva encontrada" description="Assim que você reservar uma quadra, ela aparecerá aqui com status e dados do horário." />
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

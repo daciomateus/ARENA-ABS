@@ -23,13 +23,13 @@ function normalizePhone(phone) {
 
 function buildWhatsappUrl({ reservations, totalValue, name, phone, email }) {
   const lines = [
-    'Ola, Arena ABS! Acabei de concluir minha reserva pelo site.',
+    'Olá, Arena ABS! Acabei de concluir minha reserva pelo site.',
     '',
     `Cliente: ${name}`,
-    `Telefone: ${phone || 'Nao informado'}`,
+    `Telefone: ${phone || 'Não informado'}`,
     `E-mail: ${email}`,
     '',
-    'Horarios escolhidos:',
+    'Horários escolhidos:',
     ...reservations.map((reservation) => `- ${formatShortDate(new Date(`${reservation.data_reserva}T00:00:00`))} | ${reservation.quadra} | ${reservation.horario}`),
     '',
     `Total previsto: ${formatCurrency(totalValue)}`,
@@ -59,13 +59,13 @@ export function ReservationCheckoutPage() {
     }
 
     if (!selectedSlots.length) {
-      setError('Escolha pelo menos um horario antes de concluir a reserva.')
+      setError('Escolha pelo menos um horário antes de concluir a reserva.')
       return
     }
 
     const normalizedPhone = normalizePhone(displayPhone)
     if (!displayName || !displayEmail) {
-      setError('Seu cadastro ainda nao terminou de carregar. Tente novamente em alguns segundos.')
+      setError('Seu cadastro ainda não terminou de carregar. Tente novamente em alguns segundos.')
       return
     }
 
@@ -89,7 +89,7 @@ export function ReservationCheckoutPage() {
       }
 
       if (conflicts.length) {
-        throw new Error(`Alguns horarios acabaram de ser ocupados: ${conflicts.join(' | ')}`)
+        throw new Error(`Alguns horários acabaram de ser ocupados: ${conflicts.join(' | ')}`)
       }
 
       const payloads = selectedSlots.map((slot) => ({
@@ -119,15 +119,15 @@ export function ReservationCheckoutPage() {
         email: displayEmail,
       })
 
-      setFeedback('Reserva confirmada. Estamos abrindo o WhatsApp para voce concluir o atendimento.')
+      setFeedback('Reserva confirmada. Estamos abrindo o WhatsApp para você concluir o atendimento.')
       window.open(whatsappUrl, '_blank')
 
       navigate('/minhas-reservas', {
         replace: true,
-        state: { feedback: 'Reserva confirmada com sucesso. Voce tambem ja pode concluir pelo WhatsApp.' },
+        state: { feedback: 'Reserva confirmada com sucesso. Você também já pode concluir pelo WhatsApp.' },
       })
     } catch (checkoutError) {
-      setError(checkoutError.message || 'Nao foi possivel concluir a reserva agora.')
+      setError(checkoutError.message || 'Não foi possível concluir a reserva agora.')
     } finally {
       setSubmitting(false)
     }
@@ -139,12 +139,12 @@ export function ReservationCheckoutPage() {
         <PageHeader
           eyebrow="Checkout"
           title="Nenhuma reserva pendente"
-          description="Volte para a agenda, escolha um ou mais horarios e finalize por aqui."
+          description="Volte para a agenda, escolha um ou mais horários e finalize por aqui."
         />
 
         <EmptyState
-          title="Sua selecao ainda esta vazia"
-          description="Assim que voce escolher horarios na agenda, o resumo de checkout aparece aqui para confirmar e enviar no WhatsApp."
+          title="Sua seleção ainda está vazia"
+          description="Assim que você escolher horários na agenda, o resumo do checkout aparece aqui para confirmar e enviar no WhatsApp."
         />
 
         <div className="mt-6 flex justify-center">
@@ -163,11 +163,11 @@ export function ReservationCheckoutPage() {
         <PageHeader
           eyebrow="Checkout"
           title="Revise antes de enviar no WhatsApp"
-          description="Conferimos os horarios, registramos a reserva no sistema e depois abrimos o WhatsApp para voce continuar o atendimento."
+          description="Conferimos os horários, registramos a reserva no sistema e depois abrimos o WhatsApp para você continuar o atendimento."
           action={
             <button type="button" className="secondary-btn" onClick={() => navigate('/quadras')}>
               <ArrowLeft size={16} className="mr-2" />
-              Ajustar horarios
+              Ajustar horários
             </button>
           }
         />
@@ -177,7 +177,7 @@ export function ReservationCheckoutPage() {
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2 text-sm font-semibold text-ink-950">
                 <CalendarDays size={16} className="text-brand-500" />
-                Horarios escolhidos
+                Horários escolhidos
               </div>
 
               <div className="mt-4 space-y-3">
@@ -202,11 +202,11 @@ export function ReservationCheckoutPage() {
 
               <div className="mt-4 grid gap-3 text-sm text-slate-600">
                 <p><strong className="text-ink-950">Nome:</strong> {displayName}</p>
-                <p><strong className="text-ink-950">E-mail:</strong> {displayEmail || 'Nao informado'}</p>
-                <p><strong className="text-ink-950">Telefone:</strong> {displayPhone || 'Nao informado'}</p>
+                <p><strong className="text-ink-950">E-mail:</strong> {displayEmail || 'Não informado'}</p>
+                <p><strong className="text-ink-950">Telefone:</strong> {displayPhone || 'Não informado'}</p>
                 <div className="mt-1 h-px bg-slate-200" />
                 <div className="flex items-center justify-between gap-3">
-                  <span>Quantidade de horarios</span>
+                  <span>Quantidade de horários</span>
                   <strong className="text-ink-950">{selectedSlots.length}</strong>
                 </div>
                 <div className="flex items-center justify-between gap-3">
@@ -220,7 +220,7 @@ export function ReservationCheckoutPage() {
               </div>
 
               <div className="mt-5 rounded-2xl bg-sand-50 px-4 py-3 text-sm text-slate-600">
-                Depois da confirmacao, abrimos o WhatsApp da arena com o resumo pronto.
+                Depois da confirmação, abrimos o WhatsApp da arena com o resumo pronto.
               </div>
 
               <button type="button" className="primary-btn mt-5 w-full py-3 text-base font-bold shadow-[0_16px_30px_rgba(245,114,14,0.22)] md:py-3" onClick={handleConfirm} disabled={submitting}>

@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { savePendingReservation, loadPendingReservation } from '../lib/bookingDraft'
 import { COURTS, RESERVATION_HOURS } from '../utils/constants'
 import { formatCurrency, formatDateLabel, formatMobileDateLabel, getBookableDates, isReservationSlotAvailable } from '../utils/date'
-import { listReservations } from '../services/reservationService'
+import { listPublicReservations } from '../services/reservationService'
 
 const LOAD_TIMEOUT_MS = 8000
 
@@ -52,13 +52,9 @@ export function CourtRentalPage() {
     setLoading(true)
     try {
       const data = await Promise.race([
-        listReservations({
-          isAdmin: true,
-          columns: 'id,quadra,data_reserva,horario,status',
-          filters: {
-            data_reserva_gte: visibleDateRange.start,
-            data_reserva_lte: visibleDateRange.end,
-          },
+        listPublicReservations({
+          dateFrom: visibleDateRange.start,
+          dateTo: visibleDateRange.end,
         }),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error('A agenda demorou para responder.')), LOAD_TIMEOUT_MS),
@@ -69,7 +65,7 @@ export function CourtRentalPage() {
       setError('')
     } catch {
       setReservations([])
-      setError('Nao foi possivel validar a disponibilidade agora. Voce ainda pode selecionar horarios e confirmar no checkout.')
+      setError('Não foi possível validar a disponibilidade agora. Você ainda pode selecionar horários e confirmar no checkout.')
     } finally {
       setLoading(false)
     }
@@ -116,12 +112,12 @@ export function CourtRentalPage() {
       const exists = current.some((item) => getSlotId(item) === getSlotId(slot))
       if (exists) {
         const next = current.filter((item) => getSlotId(item) !== getSlotId(slot))
-        setFeedback(next.length ? 'Horario removido da selecao.' : '')
+        setFeedback(next.length ? 'Horário removido da seleção.' : '')
         return next
       }
 
       const next = [...current, slot].sort((a, b) => a.horario.localeCompare(b.horario) || a.quadra.localeCompare(b.quadra))
-      setFeedback('Horario adicionado. Voce pode escolher mais de um antes de confirmar.')
+      setFeedback('Horário adicionado. Você pode escolher mais de um antes de confirmar.')
       return next
     })
   }
@@ -132,7 +128,7 @@ export function CourtRentalPage() {
 
   function handleCheckout() {
     if (!selectedSlots.length) {
-      setError('Selecione pelo menos um horario para continuar.')
+      setError('Selecione pelo menos um horário para continuar.')
       return
     }
 
@@ -167,11 +163,11 @@ export function CourtRentalPage() {
           <PageHeader
             eyebrow="Quadras"
             title="Agenda de reservas"
-            description="Escolha o dia e toque nos horarios disponiveis. Voce pode reservar mais de um antes de confirmar."
+            description="Escolha o dia e toque nos horários disponíveis. Você pode reservar mais de um antes de confirmar."
           />
 
           <div className="rounded-2xl border border-brand-100 bg-brand-50/80 px-4 py-3 text-sm text-brand-800">
-            <strong className="text-ink-950">Como funciona:</strong> escolha o dia, toque nos horarios livres e finalize tudo no botao fixo no rodape.
+            <strong className="text-ink-950">Como funciona:</strong> escolha o dia, toque nos horários livres e finalize tudo no botão fixo no rodapé.
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
@@ -179,13 +175,13 @@ export function CourtRentalPage() {
               <div className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="flex items-center gap-2 text-sm font-semibold text-ink-950">
                   <Sparkles size={16} className="text-brand-500" />
-                  Resumo rapido
+                  Resumo rápido
                 </div>
                 <div className="mt-4 grid gap-2 text-sm text-slate-600">
                   <p><strong className="text-ink-950">Dia:</strong> {selectedDateLabel}</p>
                   <p><strong className="text-ink-950">Quadra em foco:</strong> {selectedCourt}</p>
-                  <p><strong className="text-ink-950">Horarios escolhidos:</strong> {selectedSlots.length}</p>
-                  <p><strong className="text-ink-950">Total:</strong> {selectedSlots.length ? formatCurrency(totalValue) : 'Selecione horarios'}</p>
+                  <p><strong className="text-ink-950">Horários escolhidos:</strong> {selectedSlots.length}</p>
+                  <p><strong className="text-ink-950">Total:</strong> {selectedSlots.length ? formatCurrency(totalValue) : 'Selecione horários'}</p>
                 </div>
               </div>
 
@@ -277,7 +273,7 @@ export function CourtRentalPage() {
                         {court === selectedCourt ? 'Atual' : 'Livre'}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">Toque em um ou mais horarios livres para selecionar.</p>
+                    <p className="mt-1 text-sm text-slate-500">Toque em um ou mais horários livres para selecionar.</p>
 
                     <div className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-1">
                       {RESERVATION_HOURS.map((hour) => {
@@ -325,7 +321,7 @@ export function CourtRentalPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Finalizar reserva</p>
-                <strong className="mt-1 block text-sm text-ink-950">{selectedSlots.length} horario(s) selecionado(s)</strong>
+                <strong className="mt-1 block text-sm text-ink-950">{selectedSlots.length} horário(s) selecionado(s)</strong>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-ink-950">{formatCurrency(totalValue)}</p>

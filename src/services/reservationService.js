@@ -35,6 +35,16 @@ export async function listReservations({ isAdmin = false, userId, filters = {}, 
   return data ?? []
 }
 
+export async function listPublicReservations({ dateFrom = null, dateTo = null } = {}) {
+  const { data, error } = await supabase.rpc('list_public_reservations', {
+    date_from: dateFrom,
+    date_to: dateTo,
+  })
+
+  if (error) throw error
+  return data ?? []
+}
+
 export async function createReservation(payload) {
   const reservationPayload = {
     id: payload.id || crypto.randomUUID(),
@@ -60,15 +70,12 @@ export async function cancelReservation(id) {
 }
 
 export async function checkReservationConflict({ quadra, data_reserva, horario }) {
-  const { data, error } = await supabase
-    .from('reservas')
-    .select('id')
-    .eq('quadra', quadra)
-    .eq('data_reserva', data_reserva)
-    .eq('horario', horario)
-    .neq('status', 'cancelada')
-    .limit(1)
+  const { data, error } = await supabase.rpc('is_reservation_slot_taken', {
+    p_quadra: quadra,
+    p_data_reserva: data_reserva,
+    p_horario: horario,
+  })
 
   if (error) throw error
-  return Boolean(data?.length)
+  return Boolean(data)
 }

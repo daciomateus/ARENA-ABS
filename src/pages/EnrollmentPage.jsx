@@ -12,8 +12,8 @@ import { formatCurrency } from '../utils/date'
 
 const enrollmentSchema = z.object({
   nome: z.string().min(3, 'Informe o nome completo'),
-  email: z.email('Informe um e-mail valido'),
-  telefone: z.string().min(8, 'Informe um telefone valido'),
+  email: z.email('Informe um e-mail válido'),
+  telefone: z.string().min(8, 'Informe um telefone válido'),
   modalidade: z.string().min(1, 'Selecione uma modalidade'),
   forma_pagamento: z.string().min(1, 'Selecione a forma de pagamento'),
   observacoes: z.string().optional(),
@@ -23,12 +23,12 @@ const paymentOptions = [
   {
     id: 'pix',
     label: 'Pix',
-    helper: 'Pagamento mais rapido para liberar a matricula.',
+    helper: 'Pagamento mais rápido para liberar a matrícula.',
     icon: QrCode,
   },
   {
     id: 'cartao',
-    label: 'Cartao presencial',
+    label: 'Cartão presencial',
     helper: 'Pagamento direto na arena no atendimento.',
     icon: CreditCard,
   },
@@ -51,19 +51,19 @@ function normalizePhone(phone) {
 
 function buildEnrollmentWhatsappUrl({ nome, email, telefone, plan, paymentLabel, observacoes }) {
   const lines = [
-    'Ola, Arena ABS! Acabei de concluir minha matricula pelo site.',
+    'Olá, Arena ABS! Acabei de concluir minha matrícula pelo site.',
     '',
     `Aluno: ${nome}`,
-    `Telefone: ${telefone || 'Nao informado'}`,
+    `Telefone: ${telefone || 'Não informado'}`,
     `E-mail: ${email}`,
     '',
-    `Plano escolhido: ${plan ? `${plan.modalidade} - ${plan.turma}` : 'Nao informado'}`,
-    `Valor: ${plan ? formatCurrency(plan.valor) : 'Nao informado'}`,
+    `Plano escolhido: ${plan ? `${plan.modalidade} - ${plan.turma}` : 'Não informado'}`,
+    `Valor: ${plan ? formatCurrency(plan.valor) : 'Não informado'}`,
     `Forma de pagamento: ${paymentLabel}`,
   ]
 
   if (observacoes) {
-    lines.push('', `Observacoes: ${observacoes}`)
+    lines.push('', `Observações: ${observacoes}`)
   }
 
   return `https://wa.me/${WHATSAPP_ARENA_NUMBER}?text=${encodeURIComponent(lines.join('\n'))}`
@@ -159,11 +159,11 @@ export function EnrollmentPage() {
         observacoes: values.observacoes?.trim(),
       })
 
-      setFeedback('Matricula enviada com sucesso. Estamos abrindo o WhatsApp para voce concluir o atendimento.')
+      setFeedback('Matrícula enviada com sucesso. Estamos abrindo o WhatsApp para você concluir o atendimento.')
       await loadEnrollments()
       window.open(whatsappUrl, '_blank')
     } catch (submissionError) {
-      setError(submissionError.message || 'Nao foi possivel enviar a matricula agora.')
+      setError(submissionError.message || 'Não foi possível enviar a matrícula agora.')
     } finally {
       setSaving(false)
     }
@@ -173,7 +173,7 @@ export function EnrollmentPage() {
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <section className="section-card">
         <PageHeader
-          eyebrow="Matricula"
+          eyebrow="Matrícula"
           title="Escolha um plano e siga para o pagamento"
           description="Selecione a modalidade, confirme seus dados e escolha como quer pagar."
         />
@@ -185,7 +185,7 @@ export function EnrollmentPage() {
             </div>
             <div>
               <strong className="block text-ink-950">{profile?.nome || user?.email || 'Conta logada'}</strong>
-              <span className="text-sm text-slate-500">Os dados abaixo ja acompanham sua conta.</span>
+              <span className="text-sm text-slate-500">Os dados abaixo já acompanham sua conta.</span>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export function EnrollmentPage() {
             <div className="rounded-3xl border border-brand-100 bg-brand-50 p-4 text-sm text-brand-800">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <strong className="block text-ink-950">Resumo da matricula</strong>
+                  <strong className="block text-ink-950">Resumo da matrícula</strong>
                   <span className="mt-1 block">{selectedPlan ? `${selectedPlan.modalidade} - ${selectedPlan.turma}` : 'Selecione um plano'}</span>
                   <strong className="mt-2 block text-brand-700">{selectedPlan ? formatCurrency(selectedPlan.valor) : ''}</strong>
                   <span className="mt-2 block text-xs text-slate-600">Pagamento: {selectedPayment?.label || 'Escolha uma forma de pagamento abaixo'}</span>
@@ -275,13 +275,13 @@ export function EnrollmentPage() {
             </div>
 
             <div>
-              <label className="field-label" htmlFor="observacoes">Observacoes</label>
+              <label className="field-label" htmlFor="observacoes">Observações</label>
               <textarea id="observacoes" className="input-shell min-h-28 resize-none" {...form.register('observacoes')} />
             </div>
 
             <button className="primary-btn w-full" type="submit" disabled={saving}>
               {saving ? <LoaderCircle size={16} className="mr-2 animate-spin" /> : <MessageCircleMore size={16} className="mr-2" />}
-              {saving ? 'Enviando matricula...' : 'Enviar matricula e abrir WhatsApp'}
+              {saving ? 'Enviando matrícula...' : 'Enviar matrícula e abrir WhatsApp'}
             </button>
           </form>
         ) : (
@@ -297,21 +297,21 @@ export function EnrollmentPage() {
       <aside className="section-card space-y-5">
         <div className="rounded-3xl border border-slate-200 bg-sand-50 p-4 text-sm text-slate-600">
           <strong className="block text-ink-950">Pagamento</strong>
-          <p className="mt-2">Depois de enviar a matricula, abrimos o WhatsApp da arena com o plano e a forma de pagamento ja preenchidos para agilizar o atendimento.</p>
+          <p className="mt-2">Depois de enviar a matrícula, abrimos o WhatsApp da arena com o plano e a forma de pagamento já preenchidos para agilizar o atendimento.</p>
         </div>
 
         <div>
-          <span className="brand-badge">Historico</span>
+          <span className="brand-badge">Histórico</span>
           <div className="mt-4 space-y-3">
             {enrollments.length === 0 ? (
-              <EmptyState title="Nenhuma matricula enviada" description="Quando voce enviar sua matricula, ela aparecera aqui para acompanhamento." />
+              <EmptyState title="Nenhuma matrícula enviada" description="Quando você enviar sua matrícula, ela aparecerá aqui para acompanhamento." />
             ) : (
               enrollments.map((enrollment) => {
                 const plan = ENROLLMENT_OPTIONS.find((option) => option.id === enrollment.modalidade)
                 return (
                   <article key={enrollment.id} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                     <strong className="text-ink-950">{plan ? `${plan.modalidade} - ${plan.turma}` : enrollment.modalidade}</strong>
-                    <p className="mt-2 whitespace-pre-line text-sm text-slate-500">{enrollment.observacoes || 'Sem observacoes.'}</p>
+                    <p className="mt-2 whitespace-pre-line text-sm text-slate-500">{enrollment.observacoes || 'Sem observações.'}</p>
                   </article>
                 )
               })

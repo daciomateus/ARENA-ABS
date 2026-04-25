@@ -7,14 +7,14 @@ import { PageHeader } from '../components/PageHeader'
 import { useAuth } from '../hooks/useAuth'
 
 const loginSchema = z.object({
-  email: z.email('Informe um e-mail valido'),
+  email: z.email('Informe um e-mail válido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres'),
 })
 
 const registerSchema = z.object({
   nome: z.string().min(3, 'Informe o nome completo'),
-  telefone: z.string().min(8, 'Informe um telefone valido'),
-  email: z.email('Informe um e-mail valido'),
+  telefone: z.string().min(8, 'Informe um telefone válido'),
+  email: z.email('Informe um e-mail válido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres'),
 })
 
@@ -52,7 +52,7 @@ export function AuthPage() {
     try {
       await signIn(values)
     } catch (loginError) {
-      setError(loginError.message || 'Nao foi possivel entrar agora.')
+      setError(loginError.message || 'Não foi possível entrar agora.')
     } finally {
       setSubmitting(false)
     }
@@ -67,11 +67,11 @@ export function AuthPage() {
       if (data?.session) {
         return
       }
-      setFeedback('Conta criada com sucesso. Se o Supabase exigir confirmacao por e-mail, confirme antes de entrar.')
+      setFeedback('Conta criada com sucesso. Se o Supabase exigir confirmação por e-mail, confirme antes de entrar.')
       setMode('login')
       registerForm.reset()
     } catch (registerError) {
-      setError(registerError.message || 'Nao foi possivel criar a conta agora.')
+      setError(registerError.message || 'Não foi possível criar a conta agora.')
     } finally {
       setSubmitting(false)
     }
@@ -84,14 +84,14 @@ export function AuthPage() {
           <img src="/arena-abs-logo.jpeg" alt="Logo Arena ABS" className="h-14 w-14 rounded-2xl border border-slate-200 bg-white object-cover shadow-sm" />
           <div>
             <span className="brand-badge">Arena ABS</span>
-            <p className="mt-2 text-sm text-slate-500">Acesse sua conta para reservar e concluir matriculas.</p>
+            <p className="mt-2 text-sm text-slate-500">Acesse sua conta para reservar e concluir matrículas.</p>
           </div>
         </div>
 
         <PageHeader
           eyebrow="Acesso"
           title="Entre ou crie sua conta"
-          description="Seu cadastro fica salvo no banco e libera a finalizacao das reservas e matriculas."
+          description="Seu cadastro fica salvo no banco e libera a finalização das reservas e matrículas."
         />
 
         <div className="flex gap-2 rounded-2xl bg-sand-50 p-1">

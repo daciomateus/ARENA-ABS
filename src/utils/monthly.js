@@ -20,7 +20,7 @@ export function getFinanceiroStatus(registro) {
     return {
       key: 'pendente',
       label: 'Pendente',
-      detail: `Proximo vencimento previsto para ${formatShortDate(calculatedDueDate)}.`,
+      detail: `Próximo vencimento previsto para ${formatShortDate(calculatedDueDate)}.`,
     }
   }
 
@@ -44,7 +44,7 @@ export function getFinanceiroStatus(registro) {
     return {
       key: 'vence_hoje',
       label: 'Vence hoje',
-      detail: 'O vencimento e hoje.',
+      detail: 'O vencimento é hoje.',
     }
   }
 
@@ -61,7 +61,7 @@ export function getFinanceiroStatus(registro) {
   return {
     key: 'pago',
     label: 'Em dia',
-    detail: `Proximo vencimento em ${formatShortDate(dueDate)}.`,
+    detail: `Próximo vencimento em ${formatShortDate(dueDate)}.`,
   }
 }
 

@@ -44,7 +44,7 @@ const studentStatusFilterOptions = [
   { value: 'pendente', label: 'Sem pagamento' },
 ]
 
-const modalidadeOptions = ['Beach', 'Futevolei']
+const modalidadeOptions = ['Beach', 'Futevôlei']
 
 const studentStatusPriority = {
   vencido: 0,
@@ -66,7 +66,7 @@ function getStudentStatusPill(statusKey) {
 }
 
 function formatPaymentDate(value) {
-  if (!value) return 'Nao registrado'
+  if (!value) return 'Não registrado'
   return formatShortDate(new Date(`${value}T00:00:00`))
 }
 
@@ -102,12 +102,12 @@ function buildWhatsappReminder(student) {
   const dueDate = student.proximoVencimento ? formatPaymentDate(student.proximoVencimento) : 'a confirmar'
   const amount = student.valor ? formatCurrency(student.valor) : 'valor a confirmar'
   const message = [
-    `Ola, ${student.nome}.`,
+    `Olá, ${student.nome}.`,
     'Passando para lembrar sobre sua mensalidade na Arena ABS.',
     `Modalidade: ${student.modalidade || 'Plano mensal'}`,
     `Vencimento: ${dueDate}`,
     `Valor: ${amount}`,
-    'Se ja tiver pago, desconsidere esta mensagem.',
+    'Se já tiver pago, desconsidere esta mensagem.',
   ].join('\n')
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
@@ -119,14 +119,14 @@ function buildMailTo(student) {
   const dueDate = student.proximoVencimento ? formatPaymentDate(student.proximoVencimento) : 'a confirmar'
   const subject = encodeURIComponent('Arena ABS - lembrete de mensalidade')
   const body = encodeURIComponent([
-    `Ola, ${student.nome}.`,
+    `Olá, ${student.nome}.`,
     '',
     'Estamos entrando em contato sobre sua mensalidade na Arena ABS.',
     `Modalidade: ${student.modalidade || 'Plano mensal'}`,
     `Vencimento: ${dueDate}`,
     `Valor: ${student.valor ? formatCurrency(student.valor) : 'a confirmar'}`,
     '',
-    'Se ja tiver pago, desconsidere este aviso.',
+    'Se já tiver pago, desconsidere este aviso.',
   ].join('\n'))
 
   return `mailto:${student.email}?subject=${subject}&body=${body}`
@@ -174,7 +174,7 @@ function AlertStudentCard({ student, onEdit, onPay }) {
         </div>
         <div className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
           <p><strong className="text-ink-950">Vencimento:</strong> {formatPaymentDate(student.proximoVencimento)}</p>
-          <p><strong className="text-ink-950">Valor:</strong> {student.valor ? formatCurrency(student.valor) : 'Nao informado'}</p>
+          <p><strong className="text-ink-950">Valor:</strong> {student.valor ? formatCurrency(student.valor) : 'Não informado'}</p>
           <p><strong className="text-ink-950">Telefone:</strong> {student.telefone || 'Sem telefone'}</p>
           <p><strong className="text-ink-950">Status:</strong> {student.status.detail}</p>
         </div>
@@ -199,8 +199,8 @@ function StudentMobileCard({ student, selectedStudentId, isDrawerOpen, onEdit, o
         <p><strong className="text-ink-950">Telefone:</strong> {student.telefone || 'Sem telefone'}</p>
         <p><strong className="text-ink-950">Modalidade:</strong> {student.modalidade || '-'}</p>
         <p><strong className="text-ink-950">Valor:</strong> {student.valor ? formatCurrency(student.valor) : '-'}</p>
-        <p><strong className="text-ink-950">Ultimo pagamento:</strong> {formatPaymentDate(student.ultimoPagamento)}</p>
-        <p><strong className="text-ink-950">Proximo vencimento:</strong> {formatPaymentDate(student.proximoVencimento)}</p>
+        <p><strong className="text-ink-950">Último pagamento:</strong> {formatPaymentDate(student.ultimoPagamento)}</p>
+        <p><strong className="text-ink-950">Próximo vencimento:</strong> {formatPaymentDate(student.proximoVencimento)}</p>
         <p><strong className="text-ink-950">Status:</strong> {student.detail}</p>
       </div>
 
@@ -249,7 +249,7 @@ export function AdminDashboardPage() {
       setProfiles(profileData)
       setError('')
     } catch (loadError) {
-      setError(loadError.message || 'Nao foi possivel carregar o painel admin.')
+      setError(loadError.message || 'Não foi possível carregar o painel administrativo.')
     } finally {
       setLoading(false)
     }
@@ -268,7 +268,7 @@ export function AdminDashboardPage() {
       setFeedback('Reserva cancelada pelo admin com sucesso.')
       await loadData(filters)
     } catch (cancelError) {
-      setError(cancelError.message || 'Nao foi possivel cancelar a reserva.')
+      setError(cancelError.message || 'Não foi possível cancelar a reserva.')
     } finally {
       setCancellingId('')
     }
@@ -287,11 +287,11 @@ export function AdminDashboardPage() {
 
       const payload = buildFinanceiroPayload(paymentForm)
       await createFinanceiro(payload)
-      setFeedback('Pagamento registrado com sucesso. O proximo vencimento foi calculado automaticamente.')
+      setFeedback('Pagamento registrado com sucesso. O próximo vencimento foi calculado automaticamente.')
       setPaymentForm(initialPaymentForm)
       await loadData(filters)
     } catch (paymentError) {
-      setError(paymentError.message || 'Nao foi possivel registrar este pagamento.')
+      setError(paymentError.message || 'Não foi possível registrar este pagamento.')
     } finally {
       setSavingPayment(false)
     }
@@ -340,7 +340,7 @@ export function AdminDashboardPage() {
         nome: profile?.nome || enrollment.nome || 'Aluno',
         email: profile?.email || enrollment.email || '',
         telefone: profile?.telefone || enrollment.telefone || '',
-        modalidade: latestFinance?.modalidade || enrollment.modalidade || 'Matricula ativa',
+        modalidade: latestFinance?.modalidade || enrollment.modalidade || 'Matrícula ativa',
         ultimoPagamento: latestFinance?.data_ultimo_pagamento || null,
         proximoVencimento: latestFinance?.proximo_vencimento || null,
         valor: latestFinance?.valor ? Number(latestFinance.valor) : null,
@@ -522,7 +522,7 @@ export function AdminDashboardPage() {
     setIsDrawerOpen(true)
     setPaymentForm({
       alunoId: student.userId,
-      modalidade: student.modalidade && student.modalidade !== 'Matricula ativa' ? student.modalidade : '',
+      modalidade: student.modalidade && student.modalidade !== 'Matrícula ativa' ? student.modalidade : '',
       valor: student.valor || '',
       dataPagamento: '',
       observacoes: student.observacoes || '',
@@ -566,7 +566,7 @@ export function AdminDashboardPage() {
       setFeedback('Dados do aluno atualizados com sucesso.')
       await loadData(filters)
     } catch (saveError) {
-      setError(saveError.message || 'Nao foi possivel atualizar os dados do aluno.')
+      setError(saveError.message || 'Não foi possível atualizar os dados do aluno.')
     } finally {
       setSavingStudentEdit(false)
     }
@@ -578,7 +578,7 @@ export function AdminDashboardPage() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">Admin Arena ABS</p>
             <h1 className="mt-2 text-[1.9rem] font-black text-ink-950 sm:text-3xl">Painel operacional</h1>
-            <p className="mt-1 text-sm text-slate-500">{currentDateLabel}. Controle alunos, cobrancas e reservas com uma visao mais comercial.</p>
+            <p className="mt-1 text-sm text-slate-500">{currentDateLabel}. Controle alunos, cobranças e reservas com uma visão mais comercial.</p>
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap">
@@ -636,7 +636,7 @@ export function AdminDashboardPage() {
 
           <div className="mt-4 space-y-3">
             {!loading && !dueThisWeekStudents.length ? (
-              <EmptyState title="Nenhum vencimento nesta semana" description="Os proximos avisos financeiros vao aparecer aqui automaticamente." />
+              <EmptyState title="Nenhum vencimento nesta semana" description="Os próximos avisos financeiros vão aparecer aqui automaticamente." />
             ) : null}
             {dueThisWeekStudents.slice(0, 6).map((student) => (
               <AlertStudentCard key={student.userId} student={student} onEdit={openStudentEditor} onPay={openPaymentDrawer} />
@@ -647,16 +647,16 @@ export function AdminDashboardPage() {
         <section className="rounded-[28px] border border-rose-200 bg-rose-50/60 p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-700">Cobranca</p>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-700">Cobrança</p>
               <h2 className="mt-2 text-2xl font-black text-ink-950">Alunos vencidos</h2>
-              <p className="mt-1 text-sm text-slate-600">Lista pronta para cobrar com acoes rapidas.</p>
+              <p className="mt-1 text-sm text-slate-600">Lista pronta para cobrar com ações rápidas.</p>
             </div>
             <span className="rounded-full bg-white px-3 py-1 text-sm font-black text-rose-700 ring-1 ring-rose-200">{overdueStudents.length}</span>
           </div>
 
           <div className="mt-4 space-y-3">
             {!loading && !overdueStudents.length ? (
-              <EmptyState title="Nenhum aluno em atraso" description="Quando houver inadimplencia, os casos criticos aparecem aqui com atalho para cobranca." />
+              <EmptyState title="Nenhum aluno em atraso" description="Quando houver inadimplência, os casos críticos aparecem aqui com atalho para cobrança." />
             ) : null}
             {overdueStudents.slice(0, 6).map((student) => (
               <AlertStudentCard key={student.userId} student={student} onEdit={openStudentEditor} onPay={openPaymentDrawer} />
@@ -673,7 +673,7 @@ export function AdminDashboardPage() {
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">Alunos</p>
                   <h2 className="mt-2 text-2xl font-black text-ink-950">Controle de alunos matriculados</h2>
-                  <p className="mt-1 text-sm text-slate-500">Busca rapida, leitura compacta no celular e acoes diretas para o atendimento diario.</p>
+                  <p className="mt-1 text-sm text-slate-500">Busca rápida, leitura compacta no celular e ações diretas para o atendimento diário.</p>
                 </div>
 
                 <div className="w-full xl:max-w-[680px]">
@@ -706,7 +706,7 @@ export function AdminDashboardPage() {
             {loading ? <LoadingState title="Carregando alunos matriculados" /> : null}
             {!loading && enrolledStudents.length === 0 ? (
               <div className="px-5 py-6">
-                <EmptyState title="Sem alunos matriculados" description="Quando os alunos enviarem matriculas, a listagem operacional aparece aqui automaticamente." />
+                <EmptyState title="Sem alunos matriculados" description="Quando os alunos enviarem matrículas, a listagem operacional aparece aqui automaticamente." />
               </div>
             ) : null}
 
@@ -736,10 +736,10 @@ export function AdminDashboardPage() {
                       <span>Telefone</span>
                       <span>Modalidade</span>
                       <span>Valor</span>
-                      <span>Ultimo pagamento</span>
-                      <span>Proximo vencimento</span>
+                      <span>Último pagamento</span>
+                      <span>Próximo vencimento</span>
                       <span>Status</span>
-                      <span className="text-right">Acoes</span>
+                      <span className="text-right">Ações</span>
                     </div>
 
                     {paginatedStudents.length === 0 ? (
@@ -773,10 +773,10 @@ export function AdminDashboardPage() {
                   <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                     <span>{((studentPage - 1) * STUDENTS_PER_PAGE) + 1}-{Math.min(studentPage * STUDENTS_PER_PAGE, filteredEnrolledStudents.length)} de {filteredEnrolledStudents.length}</span>
                     <div className="flex items-center gap-2">
-                      <button type="button" onClick={() => setStudentPage((current) => Math.max(1, current - 1))} disabled={studentPage === 1} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Pagina anterior">
+                      <button type="button" onClick={() => setStudentPage((current) => Math.max(1, current - 1))} disabled={studentPage === 1} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Página anterior">
                         <ChevronLeft size={16} />
                       </button>
-                      <button type="button" onClick={() => setStudentPage((current) => Math.min(totalStudentPages, current + 1))} disabled={studentPage === totalStudentPages} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Proxima pagina">
+                      <button type="button" onClick={() => setStudentPage((current) => Math.min(totalStudentPages, current + 1))} disabled={studentPage === totalStudentPages} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Próxima página">
                         <ChevronRight size={16} />
                       </button>
                     </div>
@@ -792,7 +792,7 @@ export function AdminDashboardPage() {
             <div className="border-b border-slate-200 px-5 py-4">
               <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">Reservas</p>
               <h2 className="mt-2 text-2xl font-black text-ink-950">Agenda do dia</h2>
-              <p className="mt-1 text-sm text-slate-500">Lista cronologica para bater o olho rapido na operacao da quadra.</p>
+              <p className="mt-1 text-sm text-slate-500">Lista cronológica para bater o olho rápido na operação da quadra.</p>
             </div>
 
             {reservationDayOptions.length ? (
@@ -812,7 +812,7 @@ export function AdminDashboardPage() {
 
             <div className="px-5 py-4">
               {loading ? <LoadingState title="Carregando reservas" /> : null}
-              {!loading && !reservationDayOptions.length ? <EmptyState title="Nenhuma reserva encontrada" description="As reservas ativas vao aparecer aqui organizadas por dia." /> : null}
+              {!loading && !reservationDayOptions.length ? <EmptyState title="Nenhuma reserva encontrada" description="As reservas ativas vão aparecer aqui organizadas por dia." /> : null}
               {!loading && reservationDayOptions.length ? (
                 <div className="space-y-3">
                   {reservationsForSelectedDay.map((reservation) => (
@@ -849,7 +849,7 @@ export function AdminDashboardPage() {
             <div className="sticky top-0 border-b border-slate-200 bg-white px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">{showPaymentDrawer ? 'Pagamento rapido' : 'Detalhes do aluno'}</p>
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-700">{showPaymentDrawer ? 'Pagamento rápido' : 'Detalhes do aluno'}</p>
                   <h3 className="mt-2 text-2xl font-black text-ink-950">{showPaymentDrawer ? (selectedStudent?.nome || 'Registrar pagamento manual') : selectedStudent?.nome}</h3>
                   <p className="mt-1 text-sm text-slate-500">{showPaymentDrawer ? 'Selecione aluno, modalidade, valor e data de pagamento.' : (selectedStudent?.email || 'Sem e-mail cadastrado')}</p>
                 </div>
@@ -864,7 +864,7 @@ export function AdminDashboardPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Telefone</p>
-                        <p className="mt-1 text-sm text-ink-950">{selectedStudent.telefone || 'Nao informado'}</p>
+                        <p className="mt-1 text-sm text-ink-950">{selectedStudent.telefone || 'Não informado'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Modalidade</p>
@@ -881,11 +881,11 @@ export function AdminDashboardPage() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Ultimo pagamento</p>
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Último pagamento</p>
                         <p className="mt-1 text-sm text-ink-950">{formatPaymentDate(selectedStudent.ultimoPagamento)}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Proximo vencimento</p>
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Próximo vencimento</p>
                         <p className="mt-1 text-sm text-ink-950">{formatPaymentDate(selectedStudent.proximoVencimento)}</p>
                       </div>
                     </div>
@@ -911,8 +911,8 @@ export function AdminDashboardPage() {
                       <input className="input-shell mt-0" type="number" step="0.01" placeholder="Valor" value={studentEditor.valor} onChange={(event) => setStudentEditor((current) => ({ ...current, valor: event.target.value }))} />
                       <input className="input-shell mt-0" type="date" value={studentEditor.dataPagamento} onChange={(event) => setStudentEditor((current) => ({ ...current, dataPagamento: event.target.value }))} />
                     </div>
-                    <textarea className="input-shell mt-0 resize-none" placeholder="Observacoes" value={studentEditor.observacoes} onChange={(event) => setStudentEditor((current) => ({ ...current, observacoes: event.target.value }))} />
-                    <button className="primary-btn w-full" type="submit" disabled={savingStudentEdit}>{savingStudentEdit ? 'Salvando...' : 'Salvar alteracoes'}</button>
+                    <textarea className="input-shell mt-0 resize-none" placeholder="Observações" value={studentEditor.observacoes} onChange={(event) => setStudentEditor((current) => ({ ...current, observacoes: event.target.value }))} />
+                    <button className="primary-btn w-full" type="submit" disabled={savingStudentEdit}>{savingStudentEdit ? 'Salvando...' : 'Salvar alterações'}</button>
                   </form>
                 </>
               ) : null}
@@ -920,7 +920,7 @@ export function AdminDashboardPage() {
               <form className="space-y-3 rounded-3xl border border-slate-200 bg-slate-50 p-4" onSubmit={handleRegisterPayment}>
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-700">Registrar pagamento</p>
-                  <p className="mt-1 text-sm text-slate-500">O sistema calcula o proximo vencimento automaticamente.</p>
+                  <p className="mt-1 text-sm text-slate-500">O sistema calcula o próximo vencimento automaticamente.</p>
                 </div>
                 <select className="input-shell mt-0" value={paymentForm.alunoId} onChange={(event) => setPaymentForm((current) => ({ ...current, alunoId: event.target.value }))}>
                   <option value="">Selecione o aluno</option>
@@ -938,7 +938,7 @@ export function AdminDashboardPage() {
                   <input className="input-shell mt-0" type="number" step="0.01" placeholder="Valor" value={paymentForm.valor} onChange={(event) => setPaymentForm((current) => ({ ...current, valor: event.target.value }))} />
                   <input className="input-shell mt-0" type="date" value={paymentForm.dataPagamento} onChange={(event) => setPaymentForm((current) => ({ ...current, dataPagamento: event.target.value }))} />
                 </div>
-                <textarea className="input-shell mt-0 resize-none" placeholder="Observacoes (opcional)" value={paymentForm.observacoes} onChange={(event) => setPaymentForm((current) => ({ ...current, observacoes: event.target.value }))} />
+                <textarea className="input-shell mt-0 resize-none" placeholder="Observações (opcional)" value={paymentForm.observacoes} onChange={(event) => setPaymentForm((current) => ({ ...current, observacoes: event.target.value }))} />
                 <button className="primary-btn w-full" type="submit" disabled={savingPayment}>{savingPayment ? 'Salvando...' : 'Registrar pagamento'}</button>
               </form>
             </div>

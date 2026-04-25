@@ -29,7 +29,7 @@ export const ENROLLMENT_OPTIONS = [
   },
   {
     id: 'fute-marrom-1x',
-    modalidade: 'Futevolei',
+    modalidade: 'Futevôlei',
     turma: 'Marrom - 1x na semana',
     valor: 80,
   },
